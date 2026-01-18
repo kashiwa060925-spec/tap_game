@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>ハクスラ・タップRPG（HTML一枚／タップ専用）</title>
+<title>ハクスラ・タップRPG</title>
 <style>
-  :root{--c-bg:#0f1220;--c-panel:#171a2b;--c-accent:#7cd2ff;--c-text:#e8eefc;--c-sub:#aab6d6;--c-danger:#ff6b6b;--c-gold:#ffd76a}
+  :root{--c-bg:#0f1220;--c-panel:#171a2b;--c-text:#e8eefc;--c-sub:#aab6d6;--c-danger:#ff6b6b;--c-gold:#ffd76a}
   *{box-sizing:border-box}
   html,body{height:100%;-webkit-text-size-adjust:100%;touch-action:manipulation}
   body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#0d1120,#0b1021 50%,#0e0f1a);color:var(--c-text);-webkit-tap-highlight-color:transparent}
@@ -13,7 +13,7 @@
   header{position:sticky;top:0;z-index:3;background:#0d1120cc;backdrop-filter:blur(6px);border-bottom:1px solid #1f2440;padding:.6rem .8rem}
   .topbar{display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:center}
   .wrap{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
-  .pill{background:var(--c-panel);border:1px solid #232742;border-radius:12px;padding:.45rem .6rem;font-size:.92rem;color:var(--c-sub)}
+  .pill{background:#171a2b;border:1px solid #232742;border-radius:12px;padding:.45rem .6rem;font-size:.92rem;color:var(--c-sub)}
   .bar{width:160px;height:12px;border-radius:8px;background:#101425;border:1px solid #283055;overflow:hidden}
   .bar>span{display:block;height:100%;background:linear-gradient(90deg,#2ddf7f,#67e3a3);width:100%}
   .small{font-size:.85rem;color:var(--c-sub)}
@@ -44,27 +44,29 @@
   .card{background:#0f1433;border:1px solid #2a2f66;border-radius:10px;padding:.7rem;display:grid;gap:.35rem}
   .row{display:flex;justify-content:space-between;gap:.6rem;align-items:center;flex-wrap:wrap}
   .muted{color:var(--c-sub)}.warn{color:var(--c-danger)}.gold{color:var(--c-gold)}
-  .footnote{margin-top:.8rem;color:#98a2c9;font-size:.9rem}
+  .section-title{font-weight:700;margin:.2rem 0}
 </style>
 </head>
 <body>
 <header>
   <div class="topbar">
+    <!-- 折りたたみ：所持 / Lv / EXP（※階層は表示しない） -->
     <div class="wrap" id="top-collapsed">
-      <div class="pill">💰 所持 <span class="gold"><b id="c-gold">0</b> G</span></div>
-      <div class="pill">🧝 Lv <b id="c-level">1</b></div>
-      <div class="pill">📈 EXP <b id="c-exp">0/20</b></div>
+      <div class="pill">所持 <span class="gold"><b id="c-gold">0</b> G</span></div>
+      <div class="pill">Lv <b id="c-level">1</b></div>
+      <div class="pill">EXP <b id="c-exp">0/20</b></div>
     </div>
     <button id="toggleInfo" class="toggle" aria-expanded="false" aria-controls="top-expanded">▼ 詳細</button>
+    <!-- 展開：階層 / Lv / EXP / HP / ATK / 所持 / ソウル / クリ率 / タイマー -->
     <div class="wrap" id="top-expanded" hidden>
-      <div class="pill">🧭 階層 <b id="x-floor">1</b></div>
-      <div class="pill">🧝 Lv <b id="x-level">1</b></div>
-      <div class="pill">📈 EXP <b id="x-exp">0/20</b></div>
-      <div class="pill">❤️ HP <span class="bar"><span id="x-hpbar" style="width:100%"></span></span> <span class="small" id="x-hptext">10/10</span></div>
-      <div class="pill">⚔️ ATK <b id="x-atk">1</b></div>
-      <div class="pill">💰 所持 <span class="gold"><b id="x-gold">0</b> G</span></div>
-      <div class="pill">🔮 ソウル <b id="x-souls">0</b></div>
-      <div class="pill">🎯 クリ率 <b id="x-crit">5%</b></div>
+      <div class="pill">階層 <b id="x-floor">1</b></div>
+      <div class="pill">Lv <b id="x-level">1</b></div>
+      <div class="pill">EXP <b id="x-exp">0/20</b></div>
+      <div class="pill">HP <span class="bar"><span id="x-hpbar" style="width:100%"></span></span> <span class="small" id="x-hptext">10/10</span></div>
+      <div class="pill">ATK <b id="x-atk">1</b></div>
+      <div class="pill">所持 <span class="gold"><b id="x-gold">0</b> G</span></div>
+      <div class="pill">ソウル <b id="x-souls">0</b></div>
+      <div class="pill">クリ率 <b id="x-crit">5%</b></div>
       <div class="pill"><span class="small" id="timerAll"></span></div>
     </div>
   </div>
@@ -72,6 +74,7 @@
 
 <main>
   <div class="layout">
+    <!-- 戦闘パネル -->
     <section class="panel">
       <div id="monster" class="monster" aria-label="モンスターを攻撃">
         <div class="floor-badge" id="floorBadge">階層 1</div>
@@ -84,9 +87,10 @@
       <div class="footnote">10階ごとにボス（<span class="warn">制限30秒</span>）。死亡すると5秒で自動復活（復活後は一度停止）。</div>
     </section>
 
+    <!-- 階層移動パネル（分離） -->
     <section class="panel" id="panel-floor">
       <div class="grid">
-        <div class="row"><b>🧭 階層移動</b><label class="small"><input type="checkbox" id="stayCb"> この階層に留まる</label></div>
+        <div class="row"><b>階層移動</b><label class="small"><input type="checkbox" id="stayCb"> この階層に留まる</label></div>
         <div class="row">
           <button class="btn danger" id="fleeBtn">1階戻る</button>
           <button class="btn gold" id="nextBtn" title="最高到達階層までは上がれます">次の階層へ</button>
@@ -95,75 +99,97 @@
       </div>
     </section>
 
+    <!-- 右カラム：タブ -->
     <section class="panel">
       <div class="tabs">
-        <button class="tab active" data-tab="tab-upg">⚒️ 強化</button>
-        <button class="tab" data-tab="tab-inv">🛡️ 装備</button>
-        <button class="tab" data-tab="tab-sta">📊 ステータス</button>
-        <button class="tab" data-tab="tab-relics">🔮 聖遺物</button>
-        <button class="tab" data-tab="tab-sys">⚙️ 設定/転生</button>
+        <button class="tab active" data-tab="tab-upg">強化</button>
+        <button class="tab" data-tab="tab-inv">装備</button>
+        <button class="tab" data-tab="tab-sta">ステータス</button>
+        <button class="tab" data-tab="tab-relics">聖遺物</button>
+        <button class="tab" data-tab="tab-sys">設定/転生</button>
       </div>
 
+      <!-- 強化 -->
       <div id="tab-upg" class="grid">
-        <div class="tab-row"><div class="small muted">⚒️ 強化メニュー</div><div class="small">💰 <b id="upgGold">0</b> G</div></div>
+        <div class="tab-row"><div class="small muted">強化メニュー</div><div class="small">所持 <b id="upgGold">0</b> G</div></div>
         <div class="card">
-          <div class="row"><div><b>⚔️ 攻撃力強化</b><div class="small muted">クリック与ダメを増加</div></div><div class="gold"><b id="costAtk">10</b> G</div></div>
+          <div class="row"><div><b>攻撃力強化</b><div class="small muted">クリック与ダメを増加</div></div><div class="gold"><b id="costAtk">10</b> G</div></div>
           <button class="btn" id="buyAtk">購入 (+1 ATK) / Lv <b id="lvAtk">0</b></button>
         </div>
         <div class="card">
-          <div class="row"><div><b>❤️ 最大HP強化</b><div class="small muted">耐久を増加</div></div><div class="gold"><b id="costHP">10</b> G</div></div>
+          <div class="row"><div><b>最大HP強化</b><div class="small muted">耐久を増加</div></div><div class="gold"><b id="costHP">10</b> G</div></div>
           <button class="btn" id="buyHP">購入 (+5 HP) / Lv <b id="lvHP">0</b></button>
         </div>
         <div class="card">
-          <div class="row"><div><b>🤖 自動タップ</b><div class="small muted">毎秒自動攻撃（ATKに依存）</div></div><div class="gold"><b id="costAuto">25</b> G</div></div>
+          <div class="row"><div><b>自動タップ</b><div class="small muted">毎秒自動攻撃（ATKに依存）</div></div><div class="gold"><b id="costAuto">25</b> G</div></div>
           <button class="btn" id="buyAuto">購入 (+0.2 タップ/秒) / Lv <b id="lvAuto">0</b></button>
           <div class="small muted">現在：<b id="autoRate">0.0</b> タップ/秒</div>
         </div>
       </div>
 
+      <!-- 装備 -->
       <div id="tab-inv" class="grid" hidden>
-        <div class="card"><div><b>🛡️ 装備中</b></div><div class="small">武器：<span id="eq-weapon">なし</span></div><div class="small">鎧　：<span id="eq-armor">なし</span></div><div class="small">指輪：<span id="eq-ring">なし</span></div></div>
-        <div class="card"><div class="row"><b>🎒 所持品</b><label class="small"><input type="checkbox" id="autoEquip" /> 強い装備を自動装備</label></div><div class="inv-list" id="invList"></div></div>
+        <div class="card"><div><b>装備中</b></div><div class="small">武器：<span id="eq-weapon">なし</span></div><div class="small">鎧　：<span id="eq-armor">なし</span></div><div class="small">指輪：<span id="eq-ring">なし</span></div></div>
+        <div class="card"><div class="row"><b>所持品</b><label class="small"><input type="checkbox" id="autoEquip" /> 強い装備を自動装備</label></div><div class="inv-list" id="invList"></div></div>
       </div>
 
+      <!-- ステータス -->
       <div id="tab-sta" class="grid" hidden>
         <div class="card">
-          <b>📊 基礎ステータス</b>
+          <div class="section-title">ステータス</div>
           <div class="small">ATK：<b id="sta-atk">1</b></div>
           <div class="small">最大HP：<b id="sta-hp">10</b></div>
           <div class="small">防御：<b id="sta-def">0</b></div>
-          <div class="small">クリ率：<b id="sta-crit">5%</b></div>
+          <div class="small">クリ率（ラック）：<b id="sta-crit">5%</b></div>
           <div class="small">ゴールドボーナス：<b id="sta-goldb">0%</b></div>
           <div class="small">ソウル補正（恒久）：<b id="sta-soulb">0%</b></div>
-          <div class="small">🔹 輝く石ころ：<b id="sta-peb">0</b></div>
-          <div class="small">🔮 魔石：<b id="sta-gem">0</b></div>
+          <div class="small">自動タップ：<b id="sta-autotap">0.0</b> /秒</div>
+          <div class="small">装備ドロップ率：<b id="sta-itemdrop">20%</b></div>
+          <div class="small">ミミック出現率：<b id="sta-mimic">5%</b></div>
+          <div class="small">超ミミック出現率：<b id="sta-supermimic">2%</b></div>
+          <div class="small">石ころドロップ率：<b id="sta-stonedrop">5%</b>（1回あたり<b id="sta-stoneamt">0</b>個）</div>
         </div>
-        <div class="card"><b>🏆 戦績</b><div class="small">最高到達階層：<b id="sta-maxfloor">1</b></div><div class="small">討伐数：<b id="sta-kills">0</b></div><div class="small">死亡数：<b id="sta-deaths">0</b></div></div>
+        <div class="card">
+          <div class="section-title">戦績</div>
+          <div class="small">最高到達階層：<b id="sta-maxfloor">1</b></div>
+          <div class="small">討伐数：<b id="sta-kills">0</b></div>
+          <div class="small">死亡数：<b id="sta-deaths">0</b></div>
+        </div>
+        <div class="card">
+          <div class="section-title">所持物</div>
+          <div class="small">ゴールド：<b id="bag-gold">0</b> G</div>
+          <div class="small">ソウル：<b id="bag-soul">0</b></div>
+          <div class="small">魔石：<b id="bag-gem">0</b></div>
+          <div class="small">輝く石ころ：<b id="bag-peb">0</b></div>
+          <div class="small">装備所持数：<b id="bag-eq">0</b></div>
+        </div>
       </div>
 
+      <!-- 聖遺物 -->
       <div id="tab-relics" class="grid" hidden>
         <div class="card" id="relicKashiwaCard" hidden>
-          <div class="row"><b>🍃 柏の加護</b><label class="small"><input type="checkbox" id="relicKashiwa"> 有効化</label></div>
-          <div class="small">効果：タップ時、与えた一撃が敵HPを超えた分だけ<strong>複数体</strong>討伐（ATK基準）。2体以上倒すと特別メッセージ</div>
+          <div class="row"><b>柏の加護</b><label class="small"><input type="checkbox" id="relicKashiwa"> 有効化</label></div>
+          <div class="small">効果：タップ時、与えた一撃が敵HPを超えた分だけ複数体討伐（ATK基準）。2体以上倒すと特別メッセージ</div>
         </div>
         <div class="card" id="relicLockedCard">
-          <b>🔒 聖遺物（未解放）</b>
-          <div class="small">設定タブの「🎟️ コード引き換え」で入手できます</div>
+          <b>聖遺物（未解放）</b>
+          <div class="small">設定タブの「コード引き換え」で入手できます</div>
         </div>
       </div>
 
+      <!-- 設定/転生 -->
       <div id="tab-sys" class="grid" hidden>
         <div class="card">
-          <b>🎟️ コード引き換え</b>
+          <b>コード引き換え</b>
           <div class="row"><input id="codeInput" placeholder="コードを入力" style="flex:1;min-width:160px;background:#0b0f25;color:#cfe0ff;border:1px solid #2a2f66;border-radius:8px;padding:.5rem"/><button class="btn" id="codeBtn">引き換え</button></div>
           <div class="small muted" id="codeStatus"></div>
         </div>
         <div class="card">
-          <b>💾 セーブ/ロード</b>
+          <b>セーブ/ロード</b>
           <div class="row"><button class="btn" id="saveBtn">保存</button><button class="btn" id="loadBtn">読込</button><button class="btn" id="exportBtn">エクスポート</button><button class="btn" id="importBtn">インポート</button><button class="btn danger" id="wipeBtn">全削除</button></div>
           <textarea id="ioArea" rows="4" style="width:100%; background:#0b0f25; color:#cfe0ff; border:1px solid #2a2f66; border-radius:8px; margin-top:.5rem" placeholder="ここに保存データが入ります（手動バックアップ用）"></textarea>
         </div>
-        <div class="card"><b>🌀 転生（パーマネント強化）</b><div class="small">転生で <b>🔹石ころ→🔮魔石</b> へ変換。恒久強化に使用（準備中）。</div><div class="row"><div>獲得見込み：<b id="soulGain">0</b> ソウル</div><button class="btn danger" id="ascendBtn">転生する</button></div></div>
+        <div class="card"><b>転生（パーマネント強化）</b><div class="small">転生で 石ころ→魔石 へ変換。恒久強化に使用（準備中）。</div><div class="row"><div>獲得見込み：<b id="soulGain">0</b> ソウル</div><button class="btn danger" id="ascendBtn">転生する</button></div></div>
       </div>
     </section>
   </div>
@@ -175,7 +201,7 @@ const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 const RARITIES=[{name:'Common',color:'rar-Common',weight:60,mult:1},{name:'Uncommon',color:'rar-Uncommon',weight:25,mult:1.4},{name:'Rare',color:'rar-Rare',weight:10,mult:2},{name:'Epic',color:'rar-Epic',weight:4,mult:3},{name:'Legendary',color:'rar-Legendary',weight:1,mult:4.5}];
 const MONSTER_POOL=[{name:'ゴブリン',emoji:'👹'},{name:'スケルトン',emoji:'💀'},{name:'コウモリ',emoji:'🦇'},{name:'オオカミ',emoji:'🐺'},{name:'スライム',emoji:'🫧'},{name:'ミイラ',emoji:'🧻'},{name:'魔導書',emoji:'📕'},{name:'目玉',emoji:'👁️'},{name:'サソリ',emoji:'🦂'}];
 const BOSS_POOL=[{name:'オーガ',emoji:'👺'},{name:'ドラゴン',emoji:'🐲'},{name:'リッチ',emoji:'🪦'},{name:'ケルベロス',emoji:'🐶'}];
-const SAVE_KEY='tap_hns_save_v3', UI_MODE='ui_top_mode_v5';
+const SAVE_KEY='tap_hns_save_v4', UI_MODE='ui_top_mode_v6';
 
 // ====== 状態
 const state={
@@ -197,19 +223,28 @@ const prices={atk:10,hp:10,auto:25};
 
 // ====== UI参照
 const ui={
+  // ヘッダー
   c_gold:$('#c-gold'), c_level:$('#c-level'), c_exp:$('#c-exp'),
   x_floor:$('#x-floor'), x_level:$('#x-level'), x_exp:$('#x-exp'), x_hpbar:$('#x-hpbar'), x_hptext:$('#x-hptext'), x_atk:$('#x-atk'), x_gold:$('#x-gold'), x_souls:$('#x-souls'), x_crit:$('#x-crit'), timerAll:$('#timerAll'),
   toggleInfo:$('#toggleInfo'), topCollapsed:$('#top-collapsed'), topExpanded:$('#top-expanded'),
-  floorBadge:$('#floorBadge'),
-  monsterFace:$('#monsterFace'), monsterHP:$('#monsterHP'), monsterHPText:$('#monsterHPText'), monsterName:$('#monsterName'),
-  attackBtn:$('#attackBtn'), nextBtn:$('#nextBtn'), fleeBtn:$('#fleeBtn'), logline:$('#logline'), floorHint:$('#floorHint'), stayCb:$('#stayCb'),
+  // 戦闘
+  floorBadge:$('#floorBadge'), monsterFace:$('#monsterFace'), monsterHP:$('#monsterHP'), monsterHPText:$('#monsterHPText'), monsterName:$('#monsterName'), attackBtn:$('#attackBtn'), logline:$('#logline'),
+  // フロア移動
+  nextBtn:$('#nextBtn'), fleeBtn:$('#fleeBtn'), floorHint:$('#floorHint'), stayCb:$('#stayCb'),
+  // タブと各領域
   tabs:$$('.tab'), tabUpg:$('#tab-upg'), tabInv:$('#tab-inv'), tabSta:$('#tab-sta'), tabRel:$('#tab-relics'), tabSys:$('#tab-sys'),
+  // 強化
   costAtk:$('#costAtk'), costHP:$('#costHP'), costAuto:$('#costAuto'), buyAtk:$('#buyAtk'), buyHP:$('#buyHP'), buyAuto:$('#buyAuto'), autoRate:$('#autoRate'), upgGold:$('#upgGold'), lvAtk:$('#lvAtk'), lvHP:$('#lvHP'), lvAuto:$('#lvAuto'),
+  // 装備
   invList:$('#invList'), eqWeapon:$('#eq-weapon'), eqArmor:$('#eq-armor'), eqRing:$('#eq-ring'), autoEquip:$('#autoEquip'),
+  // ステータス
   staAtk:$('#sta-atk'), staHP:$('#sta-hp'), staDef:$('#sta-def'), staCrit:$('#sta-crit'), staGoldB:$('#sta-goldb'), staSoulB:$('#sta-soulb'), staMaxFloor:$('#sta-maxfloor'), staKills:$('#sta-kills'), staDeaths:$('#sta-deaths'),
-  staPeb:$('#sta-peb'), staGem:$('#sta-gem'), gemCount:$('#gemCount'),
-  relicLockedCard:$('#relicLockedCard'), relicKashiwaCard:$('#relicKashiwaCard'), relicKashiwa:$('#relicKashiwa'),
-  codeInput:$('#codeInput'), codeBtn:$('#codeBtn'), codeStatus:$('#codeStatus'),
+  staAutoTap:$('#sta-autotap'), staItemDrop:$('#sta-itemdrop'), staMimic:$('#sta-mimic'), staSuperMimic:$('#sta-supermimic'), staStoneDrop:$('#sta-stonedrop'), staStoneAmt:$('#sta-stoneamt'),
+  // 所持物（ステータス内）
+  bagGold:$('#bag-gold'), bagSoul:$('#bag-soul'), bagGem:$('#bag-gem'), bagPeb:$('#bag-peb'), bagEq:$('#bag-eq'),
+  // 聖遺物 & コード
+  relicLockedCard:$('#relicLockedCard'), relicKashiwaCard:$('#relicKashiwaCard'), relicKashiwa:$('#relicKashiwa'), codeInput:$('#codeInput'), codeBtn:$('#codeBtn'), codeStatus:$('#codeStatus'),
+  // セーブ
   saveBtn:$('#saveBtn'), loadBtn:$('#loadBtn'), exportBtn:$('#exportBtn'), importBtn:$('#importBtn'), wipeBtn:$('#wipeBtn'), ioArea:$('#ioArea'), soulGain:$('#soulGain'), ascendBtn:$('#ascendBtn')
 };
 
@@ -246,10 +281,9 @@ function renderItemText(it){ const p=[]; if(it.atk)p.push(`ATK+${it.atk}`); if(i
 function scoreItem(it){ if(!it) return -1e9; let s=0; s+=(it.atk??0)*3+(it.hp??0)*0.4+(it.def??0)*2+(it.crit??0)*1.5+(it.goldB??0)*0.8; s+=(it.lvl??0)*0.2; const rar=RARITIES.find(r=>r.name===it.rarity); s*=rar?.mult??1; return s; }
 function tryAutoEquip(it){ const s=it.slot,cur=state.eq[s]; if(scoreItem(it)>scoreItem(cur)){ state.eq[s]=it; toast(`自動装備：${renderItemText(it)}`); }}
 
-// ====== 生成
+// ====== 生成（ミミック）
 function spawnMonster(){
   const f=state.floor, boss=(f%10===0); const pool=boss?BOSS_POOL:MONSTER_POOL; const base=choice(pool);
-  // ミミック抽選
   const crit=playerCRIT(); const mimicP=Math.min(0.15,0.05+crit*0.0005); const superP=Math.min(0.05,0.02+crit*0.0003);
   let kind='normal'; const r=Math.random(); if(r<superP) kind='supermimic'; else if(r<superP+mimicP) kind='mimic';
   const hp0=eHP(f,boss), gold0=eGold(f,boss), atk0=eATK(f,boss);
@@ -265,16 +299,15 @@ function spawnMonster(){
 // ====== 報酬
 function awardKill(){
   const m=state.monster;
-  // 🔹石ころ（5%）：floor//10 個
-  if(Math.random()<0.05){ const k=Math.floor(state.floor/10); if(k>0){ state.pebbles+=k; toast(`🔹 輝く石ころ +${k}`); }}
+  // 石ころ（5%）：floor//10 個
+  if(Math.random()<0.05){ const k=Math.floor(state.floor/10); if(k>0){ state.pebbles+=k; toast(`輝く石ころ +${k}`); }}
   const goldMult=(m.kind==='mimic')?10:(m.kind==='supermimic')?100:1;
   const expBase=Math.max(1,Math.floor(3+state.floor*0.6)); const expGain=expBase*goldMult;
   const goldGain=Math.floor(m.gold*goldMult*(1+goldB()/100));
   state.gold+=goldGain; state.kills+=1; state.exp+=expGain;
   while(state.exp>=state.expToNext){ state.exp-=state.expToNext; state.level+=1; state.expToNext=Math.floor(state.expToNext*1.25+8); state.baseATK+=1; state.baseHP+=2; ui.logline.textContent='レベルアップ！ATK+1 / HP+2'; }
-  // 装備
   if(m.kind==='mimic'||m.kind==='supermimic'){
-    const minR=(m.kind==='mimic')?'Rare':'Epic'; const it=makeItem(state.floor,minR); state.inv.push(it); if(state.autoEquip) tryAutoEquip(it); toast(`🎁 ${m.kind==='mimic'?'ミミック':'超ミミック'}：${renderItemText(it)}`);
+    const minR=(m.kind==='mimic')?'Rare':'Epic'; const it=makeItem(state.floor,minR); state.inv.push(it); if(state.autoEquip) tryAutoEquip(it); toast(`特別ドロップ：${renderItemText(it)}`);
   }else{
     const luck=(state.eq.ring?.goldB??0)*0.2; const dropChance=0.20+luck/100; if(Math.random()<dropChance){ const it=makeItem(state.floor); state.inv.push(it); if(state.autoEquip) tryAutoEquip(it); toast(`ドロップ：${renderItemText(it)}`);} else { toast(`+${goldGain}G / +${expGain}EXP`); }
   }
@@ -282,43 +315,21 @@ function awardKill(){
 }
 
 // ====== フレーバーテキスト（骨組み）
-function postKillFlavor(kills){
-  if(kills>=2){
-    // ここに今後バリエーションを増やす（state.flavorIdx などで切替）
-    ui.logline.textContent = `敵を${kills}体倒した！`;
-  }
-}
+function postKillFlavor(kills){ if(kills>=2){ ui.logline.textContent = `敵を${kills}体倒した！`; } }
 
 // ====== 戦闘
 function updateAttackBtn(){ const m=state.monster; if(!m){ui.attackBtn.textContent='攻撃'; return;} const expected=playerATK(); if(!state.engaged){ ui.attackBtn.textContent=(expected>=m.hp)?'倒す':'戦闘開始！'; return;} ui.attackBtn.textContent=(expected>=m.hp)?'倒す':'攻撃（タップ）'; }
 function refreshFloorButtons(){ const canUpByBest=state.floor<state.bestMaxFloor; const dead=state.monster && state.monster.hp<=0; ui.nextBtn.disabled=!(dead||canUpByBest); ui.floorHint.textContent=`最高到達：${state.bestMaxFloor} 階`; }
 function beginEngage(){ if(!state.engaged){ state.engaged=true; if(state.monster.isBoss&&state.bossEndsAt===0){ state.bossEndsAt=Date.now()+30000; } } }
-
 function doSingleKillAndAdvance(){ awardKill(); if(state.stay){ spawnMonster(); } else { state.floor+=1; spawnMonster(); } }
 
 function attack(){
   if(!state.monster) return; if(state.playerHP<=0){ toast('気絶中…'); return; }
   beginEngage(); const m=state.monster; if(m.hp<=0) return;
-
-  // === 柏の加護（コード特典）の処理：オーバーキルで複数体討伐 ===
-  if(state.relicActive.kashiwa){
-    const atk = playerATK();
-    if(atk > m.hp){
-      let kills=0; let remaining = atk; let curHP = m.hp; // まず現行個体
-      if(remaining >= curHP){ remaining -= curHP; kills += 1; }
-      // 以降は同一フロア基準HPで割る
-      const unit = m.maxHP; if(unit>0 && remaining>0){ kills += Math.floor(remaining / unit); }
-      // 実行
-      for(let i=0;i<kills;i++){ doSingleKillAndAdvance(); }
-      postKillFlavor(kills);
-      updateAttackBtn(); refreshFloorButtons(); return;
-    }
-  }
-
-  // === 通常ダメージ ===
-  const {dmg,isCrit}=clickDamage(); const dealt=Math.min(m.hp,dmg); m.hp-=dealt; ui.monsterHP.style.width=`${(m.hp/m.maxHP)*100}%`; ui.monsterHPText.textContent=`${m.hp} / ${m.maxHP}`; ui.logline.textContent=isCrit?`クリティカル！ -${dealt}`:`-${dealt}`;
-  if(m.hp<=0){ doSingleKillAndAdvance(); }
-  updateAttackBtn(); refreshFloorButtons();
+  // 柏の加護：オーバーキル複数体
+  if(state.relicActive.kashiwa){ const atk=playerATK(); if(atk>m.hp){ let kills=0, remaining=atk, curHP=m.hp; if(remaining>=curHP){ remaining-=curHP; kills+=1; } const unit=m.maxHP; if(unit>0&&remaining>0){ kills+=Math.floor(remaining/unit); } for(let i=0;i<kills;i++){ doSingleKillAndAdvance(); } postKillFlavor(kills); updateAttackBtn(); refreshFloorButtons(); return; }}
+  // 通常
+  const {dmg,isCrit}=clickDamage(); const dealt=Math.min(m.hp,dmg); m.hp-=dealt; ui.monsterHP.style.width=`${(m.hp/m.maxHP)*100}%`; ui.monsterHPText.textContent=`${m.hp} / ${m.maxHP}`; ui.logline.textContent=isCrit?`クリティカル！ -${dealt}`:`-${dealt}`; if(m.hp<=0){ doSingleKillAndAdvance(); } updateAttackBtn(); refreshFloorButtons();
 }
 
 function enemyTick(dt){ if(!state.monster||!state.engaged||state.isDown) return; const m=state.monster; if(m.hp<=0) return; const dps=Math.max(0,m.atk-playerDEF()*0.6); const dmg=dps*dt; if(dmg<=0) return; state.playerHP-=dmg; if(state.playerHP<=0&&!state.isDown){ state.playerHP=0; state.isDown=true; state.deaths+=1; state.reviveAt=Date.now()+5000; ui.logline.textContent='気絶しました…5秒後に復活'; } }
@@ -328,16 +339,27 @@ function timersTick(){ let txt=[]; if(state.reviveAt>0){ const left=Math.max(0,s
 function toast(m){ ui.logline.textContent=m }
 
 // ====== UI更新
-function updateUI(){ ui.c_gold.textContent=Math.floor(state.gold); ui.c_level.textContent=state.level; ui.c_exp.textContent=`${state.exp}/${state.expToNext}`; ui.x_floor.textContent=state.floor; ui.x_level.textContent=state.level; ui.x_exp.textContent=`${state.exp}/${state.expToNext}`; ui.x_atk.textContent=playerATK(); ui.x_gold.textContent=Math.floor(state.gold); ui.x_souls.textContent=state.souls; ui.x_crit.textContent=`${Math.floor(playerCRIT())}%`;
+function getItemDrop(){ const luck=(state.eq.ring?.goldB??0)*0.2; return 0.20 + luck/100; }
+function getMimicP(){ const crit=playerCRIT(); return Math.min(0.15, 0.05 + crit*0.0005); }
+function getSuperMimicP(){ const crit=playerCRIT(); return Math.min(0.05, 0.02 + crit*0.0003); }
+function updateUI(){
+  // ヘッダー
+  ui.c_gold.textContent=Math.floor(state.gold); ui.c_level.textContent=state.level; ui.c_exp.textContent=`${state.exp}/${state.expToNext}`;
+  ui.x_floor.textContent=state.floor; ui.x_level.textContent=state.level; ui.x_exp.textContent=`${state.exp}/${state.expToNext}`; ui.x_atk.textContent=playerATK(); ui.x_gold.textContent=Math.floor(state.gold); ui.x_souls.textContent=state.souls; ui.x_crit.textContent=`${Math.floor(playerCRIT())}%`;
   const mx=recalcMaxHP(); const pct=clamp(state.playerHP/mx*100,0,100); ui.x_hpbar.style.width=`${pct}%`; ui.x_hptext.textContent=`${Math.floor(state.playerHP)}/${mx}`;
-  ui.upgGold.textContent=Math.floor(state.gold); ui.lvAtk.textContent=state.upg.atk; ui.lvHP.textContent=state.upg.hp; ui.lvAuto.textContent=state.upg.auto;
-  if(ui.staAtk){ ui.staAtk.textContent=playerATK(); ui.staHP.textContent=recalcMaxHP(); ui.staDef.textContent=playerDEF(); ui.staCrit.textContent=`${Math.floor(playerCRIT())}%`; ui.staGoldB.textContent=`${Math.floor(goldB())}%`; ui.staSoulB.textContent=`${Math.floor((soulMG()-1)*100)}%`; ui.staMaxFloor.textContent=state.maxFloor; ui.staKills.textContent=state.kills; ui.staDeaths.textContent=state.deaths; ui.staPeb.textContent=state.pebbles; ui.staGem.textContent=state.magicStones; }
-  if(ui.gemCount) ui.gemCount.textContent=state.magicStones;
-  ui.costAtk.textContent=prices.atk; ui.costHP.textContent=prices.hp; ui.costAuto.textContent=prices.auto; ui.autoRate.textContent=state.autoTap.toFixed(1);
+  // 強化
+  ui.upgGold.textContent=Math.floor(state.gold); ui.lvAtk.textContent=state.upg.atk; ui.lvHP.textContent=state.upg.hp; ui.lvAuto.textContent=state.upg.auto; ui.autoRate.textContent=state.autoTap.toFixed(1);
+  ui.costAtk.textContent=prices.atk; ui.costHP.textContent=prices.hp; ui.costAuto.textContent=prices.auto;
+  // ステータス表示
+  if(ui.staAtk){ ui.staAtk.textContent=playerATK(); ui.staHP.textContent=recalcMaxHP(); ui.staDef.textContent=playerDEF(); ui.staCrit.textContent=`${Math.floor(playerCRIT())}%`; ui.staGoldB.textContent=`${Math.floor(goldB())}%`; ui.staSoulB.textContent=`${Math.floor((soulMG()-1)*100)}%`; ui.staMaxFloor.textContent=state.maxFloor; ui.staKills.textContent=state.kills; ui.staDeaths.textContent=state.deaths; ui.staAutoTap.textContent=state.autoTap.toFixed(1); ui.staItemDrop.textContent=`${(getItemDrop()*100).toFixed(1)}%`; ui.staMimic.textContent=`${(getMimicP()*100).toFixed(2)}%`; ui.staSuperMimic.textContent=`${(getSuperMimicP()*100).toFixed(2)}%`; ui.staStoneDrop.textContent='5%'; ui.staStoneAmt.textContent=Math.floor(state.floor/10); }
+  // 所持物（下）
+  ui.bagGold.textContent=Math.floor(state.gold); ui.bagSoul.textContent=state.souls; ui.bagGem.textContent=state.magicStones; ui.bagPeb.textContent=state.pebbles; ui.bagEq.textContent=state.inv.length;
+  // その他
   ui.floorBadge.textContent=`階層 ${state.floor}`; updateAttackBtn(); refreshFloorButtons();
   // 聖遺物表示切替
-  if(state.unlocks.kashiwa){ ui.relicLockedCard.setAttribute('hidden',''); ui.relicKashiwaCard.removeAttribute('hidden'); ui.relicKashiwa.checked=!!state.relicActive.kashiwa; }
-  else{ ui.relicLockedCard.removeAttribute('hidden'); ui.relicKashiwaCard.setAttribute('hidden',''); }
+  if(state.unlocks.kashiwa){ ui.relicLockedCard.setAttribute('hidden',''); ui.relicKashiwaCard.removeAttribute('hidden'); ui.relicKashiwa.checked=!!state.relicActive.kashiwa; } else { ui.relicLockedCard.removeAttribute('hidden'); ui.relicKashiwaCard.setAttribute('hidden',''); }
+  // 転生ソウル試算
+  const gain=Math.floor(state.maxFloor/30); ui.soulGain && (ui.soulGain.textContent=gain);
 }
 
 function renderInventory(){ const box=ui.invList; if(!box) return; box.innerHTML=''; for(const it of state.inv){ const div=document.createElement('div'); div.className='card'; div.innerHTML=`<div><b class="${it.color}">${it.name}</b></div><div class="small">${renderItemText(it)}</div>`; const row=document.createElement('div'); row.className='row'; const e=document.createElement('button'); e.className='btn'; e.textContent='装備'; e.onclick=()=>{ state.eq[it.slot]=it; toast(`装備：${renderItemText(it)}`); updateUI(); }; const s=document.createElement('button'); s.className='btn gold'; s.textContent=`売却 (+${Math.floor(it.value)}G)`; s.onclick=()=>{ state.gold+=Math.floor(it.value); state.inv=state.inv.filter(x=>x!==it); renderInventory(); updateUI(); }; row.appendChild(e); row.appendChild(s); div.appendChild(row); box.appendChild(div); } }
@@ -349,13 +371,13 @@ function load(manual=false){ const raw=localStorage.getItem(SAVE_KEY); if(!raw){
 function exportSave(){ save(false); const raw=localStorage.getItem(SAVE_KEY); if(ui.ioArea) ui.ioArea.value=raw||''; toast('エクスポート欄に保存データを出力しました'); }
 function importSave(){ const raw=ui.ioArea?.value.trim(); if(!raw){ toast('データが空です'); return; } try{ JSON.parse(raw); localStorage.setItem(SAVE_KEY,raw); load(false); toast('インポート＆読込しました'); }catch(e){ toast('インポート失敗：JSONが不正です'); } }
 function wipeAll(){ if(!confirm('本当に全削除しますか？（元に戻せません）')) return; localStorage.removeItem(SAVE_KEY); location.reload(); }
-function ascend(){ const g=Math.floor(state.maxFloor/30); if(g<=0){ toast('転生できるほど進んでいません'); return; } if(!confirm(`転生しますか？獲得ソウル：${g}`)) return; state.souls+=g; state.magicStones+=state.pebbles; state.pebbles=0; const keepBest=Math.max(state.bestMaxFloor,state.maxFloor), keepSouls=state.souls; Object.assign(state,{ gold:0,level:1,exp:0,expToNext:20,floor:1,maxFloor:1,kills:0,deaths:0, baseATK:1,baseHP:10,baseDEF:0,baseCRIT:5, autoTap:0, eq:{weapon:null,armor:null,ring:null}, inv:[], autoEquip:state.autoEquip, monster:null, playerHP:10,bossEndsAt:0, souls:keepSouls, bestMaxFloor:keepBest, isDown:false, engaged:false, reviveAt:0, stay:state.stay, pebbles:0, magicStones:state.magicStones, upg:state.upg, unlocks:state.unlocks, relicActive:state.relicActive }); prices.atk=10; prices.hp=10; prices.auto=25; spawnMonster(); updateUI(); renderInventory(); toast('転生！🔹→🔮 変換完了 & 恒久ボーナスUP'); }
+function ascend(){ const g=Math.floor(state.maxFloor/30); if(g<=0){ toast('転生できるほど進んでいません'); return; } if(!confirm(`転生しますか？獲得ソウル：${g}`)) return; state.souls+=g; state.magicStones+=state.pebbles; state.pebbles=0; const keepBest=Math.max(state.bestMaxFloor,state.maxFloor), keepSouls=state.souls; Object.assign(state,{ gold:0,level:1,exp:0,expToNext:20,floor:1,maxFloor:1,kills:0,deaths:0, baseATK:1,baseHP:10,baseDEF:0,baseCRIT:5, autoTap:0, eq:{weapon:null,armor:null,ring:null}, inv:[], autoEquip:state.autoEquip, monster:null, playerHP:10,bossEndsAt:0, souls:keepSouls, bestMaxFloor:keepBest, isDown:false, engaged:false, reviveAt:0, stay:state.stay, pebbles:0, magicStones:state.magicStones, upg:state.upg, unlocks:state.unlocks, relicActive:state.relicActive }); prices.atk=10; prices.hp=10; prices.auto=25; spawnMonster(); updateUI(); renderInventory(); toast('転生完了：石ころ→魔石 変換'); }
 
-// ====== 入力系（連打OK／長押し一発）
+// ====== 入力（連打OK/長押し一発）
 let _holding=false,_t=0,_saw=false; function onPD(e){ e.preventDefault(); _saw=true; _t=Date.now(); if(_holding) return; _holding=true; attack(); } function onPU(){ _holding=false; }
 function bindInput(el){ if(window.PointerEvent){ el.addEventListener('pointerdown',onPD,{passive:false}); el.addEventListener('pointerup',onPU); el.addEventListener('pointercancel',onPU); el.addEventListener('pointerleave',onPU);} else { el.addEventListener('click',()=>{ if(_saw && Date.now()-_t<200) return; attack(); }); } }
 
-bindInput(ui.attackBtn); bindInput($('#monster'));
+bindInput($('#attackBtn')); bindInput($('#monster'));
 document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
 
 // ====== フロア移動
@@ -369,18 +391,9 @@ ui.buyHP.addEventListener('click',()=>buy('hp',()=>{ state.baseHP+=5; state.upg.
 ui.buyAuto.addEventListener('click',()=>buy('auto',()=>{ state.autoTap=parseFloat((state.autoTap+0.2).toFixed(1)); state.upg.auto++; }));
 ui.autoEquip&&ui.autoEquip.addEventListener('change',e=>{ state.autoEquip=e.target.checked; });
 
-// ====== 聖遺物・コード引き換え
-ui.codeBtn.addEventListener('click',()=>{
-  const code=(ui.codeInput.value||'').trim(); if(!code){ ui.codeStatus.textContent='コードを入力してください'; return; }
-  if(code==='kashiwa060925'){
-    if(state.unlocks.kashiwa){ ui.codeStatus.textContent='このコードは既に使用済みです'; return; }
-    state.unlocks.kashiwa=true; ui.codeStatus.textContent='🍃 柏の加護を獲得！ 聖遺物タブで有効化できます'; updateUI(); save(false);
-  }else{ ui.codeStatus.textContent='無効なコードです'; }
-});
+// ====== 聖遺物・コード
+ui.codeBtn.addEventListener('click',()=>{ const code=(ui.codeInput.value||'').trim(); if(!code){ ui.codeStatus.textContent='コードを入力してください'; return; } if(code==='kashiwa060925'){ if(state.unlocks.kashiwa){ ui.codeStatus.textContent='このコードは既に使用済みです'; return; } state.unlocks.kashiwa=true; ui.codeStatus.textContent='柏の加護を獲得！ 聖遺物タブで有効化できます'; updateUI(); save(false); } else { ui.codeStatus.textContent='無効なコードです'; } });
 ui.relicKashiwa&&ui.relicKashiwa.addEventListener('change',e=>{ state.relicActive.kashiwa=e.target.checked; });
-
-// ====== 保存系
-ui.saveBtn&&ui.saveBtn.addEventListener('click',()=>save(true)); ui.loadBtn&&ui.loadBtn.addEventListener('click',()=>load(true)); ui.exportBtn&&ui.exportBtn.addEventListener('click',exportSave); ui.importBtn&&ui.importBtn.addEventListener('click',importSave); ui.wipeBtn&&ui.wipeBtn.addEventListener('click',wipeAll); ui.ascendBtn&&ui.ascendBtn.addEventListener('click',ascend);
 
 // ====== タブ
 ui.tabs.forEach(t=>{ t.addEventListener('click',()=>{ ui.tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active'); const id=t.dataset.tab; [ui.tabUpg,ui.tabInv,ui.tabSta,ui.tabRel,ui.tabSys].forEach(el=>el.setAttribute('hidden','')); document.getElementById(id).removeAttribute('hidden'); }); });
