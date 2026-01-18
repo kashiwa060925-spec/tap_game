@@ -8,13 +8,12 @@
 <style>
   :root{
     --c-bg:#0b0f1f;--c-panel:#171a2b;--c-text:#e8eefc;--c-sub:#aab6d6;--c-danger:#ff6b6b;--c-gold:#ffd76a;--c-accent:#6eb6ff;
-    /* Themeable vars (defaults) */
     --bg1:#0b0f1f; --bg2:#0a0d1a;           /* page background */
     --monster1:#141937; --monster2:#101635; /* monster card gradient */
   }
   *{box-sizing:border-box}
   html,body{height:100%;-webkit-text-size-adjust:100%;touch-action:manipulation}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--c-text);-webkit-tap-highlight-color:transparent;padding-bottom:calc(112px + env(safe-area-inset-bottom));transition:background .3s ease}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--c-text);-webkit-tap-highlight-color:transparent;padding-bottom:calc(128px + 28px + env(safe-area-inset-bottom));transition:background .3s ease}
   [hidden]{display:none !important}
   header{position:sticky;top:0;z-index:30;background:#0d1120cc;backdrop-filter:blur(6px);border-bottom:1px solid #1f2440;padding:.6rem .8rem}
   .topbar{display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:center}
@@ -63,6 +62,9 @@
   #startOverlay{position:fixed;inset:0;z-index:9999}
   #startOverlay:not([hidden]) ~ #flavorBar{display:none}
   #startOverlay:not([hidden]) ~ footer{display:none}
+
+  /* Archboss UI bits */
+  .archbar{position:absolute;right:.6rem;top:2rem;background:#2a1030;border:1px solid #5a2f66;color:#ffd6ff;border-radius:10px;padding:.2rem .45rem;font-size:.82rem}
 </style>
 </head>
 <body>
@@ -74,7 +76,7 @@
     <div class="start-box" style="width:min(720px,92vw);display:grid;gap:1rem;justify-items:center;text-align:center;background:#151a2eaa;border:1px solid rgba(42,47,102,.95);border-radius:14px;backdrop-filter:blur(6px);box-shadow:0 16px 48px #0008;padding:20px">
       <div class="game-title" id="startTitle" style="font-size:28px;font-weight:800;letter-spacing:.02em;line-height:1.15">ハクスラ・タップRPG</div>
       <div class="title-logo" id="titleLogo" style="font-size:26px">⚔️ 🛡️ 💎</div>
-      <div class="hint">バージョン：<span id="verText">0.8.0</span> ／ セーブ検出：<span id="saveDetect" class="badge" style="display:inline-block;background:#0f1536;border:1px solid #2a2f66;padding:.2rem .5rem;border-radius:10px;color:#cfe0ff">…</span></div>
+      <div class="hint">バージョン：<span id="verText">0.9.0</span> ／ セーブ検出：<span id="saveDetect" class="badge" style="display:inline-block;background:#0f1536;border:1px solid #2a2f66;padding:.2rem .5rem;border-radius:10px;color:#cfe0ff">…</span></div>
 
       <div class="start-actions" style="display:grid;gap:.6rem;width:min(580px,92vw)">
         <div class="row" style="gap:.6rem;justify-content:center">
@@ -129,6 +131,7 @@
     <section class="panel">
       <div id="monster" class="monster" aria-label="モンスターを攻撃">
         <div class="floor-badge" id="floorBadge">階層 1 <span class="theme-badge" id="themeBadge">—</span></div>
+        <div id="archBadge" class="archbar" hidden>障壁 0/0</div>
         <div class="monster-emoji" id="monsterFace" aria-hidden="true">👁️</div>
         <div class="hpbar" aria-label="モンスターHP"><div id="monsterHP" style="width:100%"></div></div>
         <div class="monster-info"><span id="monsterName">Lv1 ゴブリン</span><span id="monsterHPText">10 / 10</span></div>
@@ -143,7 +146,7 @@
         <div class="actions"><button class="btn" id="attackBtn">戦闘開始！</button></div>
       </div>
 
-      <div class="footnote" id="footnoteBoss">30階ごとに大型ボス（<span class="warn">制限30秒</span>）。死亡すると5秒で自動復活（復活後は一度停止）。</div>
+      <div class="footnote" id="footnoteBoss">10階ごとにボス（<span class="warn">制限30秒</span>）。<br>30階ごとに<strong>特別ボス</strong>（<span class="warn">制限60秒＋障壁ギミック</span>）。</div>
     </section>
 
     <section class="panel" id="panel-floor">
@@ -156,7 +159,6 @@
           <button class="btn" id="jumpBtn">移動</button>
           <button class="btn gold" id="nextBtn" title="">次の階層へ</button>
         </div>
-        <!-- 区切り線を追加 -->
         <div class="divider-thin"></div>
         <div class="small muted" id="floorHint"></div>
       </div>
@@ -353,8 +355,8 @@
 </footer>
 
 <script>
-const GAME_VERSION='0.8.0';
-const SAVE_KEY='tap_hns_save_v5', UI_MODE='ui_top_mode_v7';
+const GAME_VERSION='0.9.0';
+const SAVE_KEY='tap_hns_save_v5', UI_MODE='ui_top_mode_v7', AUDIO_KEY='tap_hns_audio_v1';
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 
 // ====== Game State (full)
@@ -407,7 +409,8 @@ const ui={
   codeInput:$('#codeInput'), codeBtn:$('#codeBtn'), codeStatus:$('#codeStatus'),
   exportName:$('#exportName'), downloadBtn:$('#downloadBtn'),
   importFileBtn:$('#importFileBtn'), fileOpenSettings:$('#fileOpenSettings'),
-  wipeBtn:$('#wipeBtn'), nameEdit:$('#nameEdit'), nameSave:$('#nameSave')
+  wipeBtn:$('#wipeBtn'), nameEdit:$('#nameEdit'), nameSave:$('#nameSave'),
+  archBadge:$('#archBadge')
 };
 
 // ===== Utils & helpers
@@ -421,7 +424,6 @@ function currentBlockIdx(){ return Math.floor((state.floor-1)/30) }
 function ensureThemeForBlock(bi){ if(state.themes[bi]) return state.themes[bi]; const prev=state.themes[bi-1]; const keys=THEMES.map(t=>t.key); const pool=prev?keys.filter(k=>k!==prev):keys; const pick=choice(pool); state.themes[bi]=pick; save(false); return pick }
 function themeLabel(key){ return (THEMES.find(t=>t.key===key)?.label)||'—' }
 
-// ===== Theme skins
 const THEME_SKIN={
   plains:{bg1:'#0d1c14',bg2:'#08140e', monster1:'#10251a', monster2:'#0b1a13'},
   forest:{bg1:'#0d2014',bg2:'#08160f', monster1:'#0f2a18', monster2:'#0a1d12'},
@@ -453,7 +455,7 @@ const _logBuf=[]; function renderLog(){ for(let i=0;i<3;i++){ const el=document.
 function pushLog(html){ _logBuf.unshift(html); if(_logBuf.length>3)_logBuf.length=3; renderLog(); }
 function toast(m){ const t=typeof m==='string'?m.replace(/</g,'&lt;').replace(/>/g,'&gt;'):String(m); pushLog(t); }
 
-// ===== Item & Monster pools
+// ===== Pools
 const MONSTER_POOL=[
   {name:'野うさぎ',emoji:'🐇',tags:['plains']}, {name:'野ネズミ',emoji:'🐭',tags:['plains']}, {name:'オオカミ',emoji:'🐺',tags:['plains','forest']}, {name:'蜂の群れ',emoji:'🐝',tags:['plains','forest']}, {name:'カエル',emoji:'🐸',tags:['plains']}, {name:'大イノシシ',emoji:'🐗',tags:['plains','forest']}, {name:'妖精',emoji:'🧚',tags:['plains','arcane']}, {name:'トレントの枝',emoji:'🌿',tags:['plains','forest']},
   {name:'ゴブリン',emoji:'👹',tags:['forest','cave']}, {name:'森の精',emoji:'🌲',tags:['forest','plains']}, {name:'大コガネムシ',emoji:'🐞',tags:['forest','plains']}, {name:'クマ',emoji:'🐻',tags:['forest']},
@@ -464,6 +466,14 @@ const MONSTER_POOL=[
 ];
 const BOSS_POOL=[
   {name:'エント',emoji:'🌳',tags:['plains','forest']}, {name:'大猪王',emoji:'🐗',tags:['plains','forest']}, {name:'砂竜',emoji:'🐲',tags:['desert']}, {name:'スフィンクス',emoji:'🗿',tags:['desert','arcane']}, {name:'リッチ',emoji:'🪦',tags:['undead','arcane']}, {name:'デスナイト',emoji:'🗡️',tags:['undead']}, {name:'ケイブトロール',emoji:'👹',tags:['cave']}, {name:'巨岩王',emoji:'🪨',tags:['cave']}, {name:'アークメイジ',emoji:'🧙',tags:['arcane']}, {name:'虚ろな眼',emoji:'👁️',tags:['arcane','cave']}
+];
+const ARCHBOSS_POOL=[
+  {name:'黎明の守護者',emoji:'🌅',tags:['plains','coast']},
+  {name:'深緑の精霊王',emoji:'🌿',tags:['forest']},
+  {name:'砂上の暴君',emoji:'🏜️',tags:['desert']},
+  {name:'冥府の王',emoji:'🕱',tags:['undead']},
+  {name:'地底の覇者',emoji:'⛏️',tags:['cave']},
+  {name:'秘術の審問官',emoji:'🔮',tags:['arcane']}
 ];
 const SPECIAL_POOL=[
   {name:'ミミック',emoji:'🧰', kind:'mimic', mult:1.05, goldMult:10, minRarity:'Rare'},
@@ -481,7 +491,7 @@ function renderItemText(it){ const p=[]; if(it.atk)p.push(`ATK+${it.atk}`); if(i
 function scoreItem(it){ if(!it) return -1e9; let s=0; s+=(it.atk??0)*3+(it.hp??0)*0.4+(it.def??0)*2+(it.crit??0)*1.5+(it.goldB??0)*0.8; s+=(it.lvl??0)*0.2; const rar=RARITIES.find(r=>r.name===it.rarity); s*=rar?.mult??1; return s }
 function tryAutoEquip(it){ const s=it.slot,cur=state.eq[s]; if(scoreItem(it)>scoreItem(cur)){ state.eq[s]=it; toast(`装備：${renderItemText(it)}`) } }
 
-// ===== Flavor system
+// ===== Flavor system (unchanged core)
 const TOWNS=['アズハ','ベレク','コノハ','ドーラン','エトナ','フェンテ','ガレオ','ヒース','イスト','ジュラ','カザン','ルミナ','サフィール','モラン','ロッシュ','タリム'];
 const COUNTRIES=['ウェスタリア','ソラリス','アメシア','ノースベルク','オリエンテ','ヴァルディア','アルカニア','バハルーン','ミラディナ','カストール'];
 const THEME_FLAVORS={
@@ -501,31 +511,104 @@ let _flavorNextAt=0; function updateFlavor(reason='timer'){ const bi=currentBloc
 // ===== GM reactions when multi-kill (overflow)
 function gmReact(kills){ const uname=(state.username||'君'); if(kills<=1) return ''; if(kills<=3) return choice([`ゲームマスター「いいね！一気に${kills}体、気持ちいいだろ？」`,`ゲームマスター「軽く流して${kills}体、上々だ。」`]); if(kills<=6) return choice([`ゲームマスター「見事！${kills}体を一瞬で薙いだ！」`,`ゲームマスター「やるじゃないか、${uname}。${kills}体だ。」`]); if(kills<=10) return `ゲームマスター「フフ…${kills}体か。面白くなってきた。」`; if(kills<=15) return `ゲームマスター「なんだその速度は！${kills}体…！」`; if(kills<=25) return `ゲームマスター「皆の視線がお前に集まっている。${kills}体だと…。」`; if(kills<=40) return `ゲームマスター「喝采が止まらない！${kills}体撃破！」`; if(kills<=70) return `ゲームマスター「もっと行け、${uname}！今ので${kills}体！」`; if(kills<=120) return `ゲームマスター「背筋が凍った…${kills}体を一息で…。」`; return `ゲームマスター「引くわ…${kills}体って、常識壊してる。」`; }
 
-// ===== Spawn / combat / rewards
-function spawnMonster(){ const f=state.floor; const isBoss=(f%10===0); const bi=currentBlockIdx(); const theme=ensureThemeForBlock(bi); applyThemeSkin(theme); ui.themeBadge.textContent=themeLabel(theme); let base=null,type='normal'; if(isBoss){ base=choice(poolByTheme(BOSS_POOL,theme)); } else { const r=Math.random(); if(r<0.012){ base=SPECIAL_POOL[1]; type='supermimic'; } else if(r<0.042){ base=SPECIAL_POOL[0]; type='mimic'; } else { base=choice(poolByTheme(MONSTER_POOL,theme)); } } const mult=(type==='mimic'||type==='supermimic')?(SPECIAL_POOL.find(x=>x.kind===type)?.mult||1):1; const hp0=eHP(f,isBoss),gold0=eGold(f,isBoss),atk0=eATK(f,isBoss); const hp=Math.floor(hp0*mult), gold=gold0, atk=Math.floor(atk0*mult); state.monster={name:`Lv${f} ${base.name}`,emoji:base.emoji,hp,maxHP:hp,gold,atk,isBoss,type}; state.engaged=false; state.isDown=false; state.reviveAt=0; state.bossEndsAt=0; ui.monsterFace.textContent=base.emoji; ui.monsterName.textContent=state.monster.name; ui.monsterHPText.textContent=`${hp} / ${hp}`; ui.monsterHP.style.width='100%'; ui.floorBadge.innerHTML=`階層 ${state.floor} <span class="theme-badge" id="themeBadge">${themeLabel(theme)}</span>`; ui.themeBadge=document.getElementById('themeBadge'); refreshFloorButtons(); updateAttackBtn(); }
+// ===== WebAudio (SE)
+let audioCtx=null; let _audioReady=false; const AudioStore={enabled:true, volume:0.8};
+function loadAudioSettings(){ try{ const raw=localStorage.getItem(AUDIO_KEY); if(raw){ const o=JSON.parse(raw); AudioStore.enabled=!!o.enabled; AudioStore.volume=typeof o.volume==='number'?o.volume:0.8; } }catch(e){} }
+function saveAudioSettings(){ try{ localStorage.setItem(AUDIO_KEY, JSON.stringify({enabled:AudioStore.enabled, volume:AudioStore.volume})); }catch(e){} }
+function audioEnsure(){ if(!audioCtx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return false; audioCtx=new C(); } return true }
+function audioResume(){ if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }
+function seInitOnUserGesture(){ if(_audioReady) return; if(!audioEnsure()) return; audioResume(); _audioReady=true; }
+function now(){ return audioCtx?audioCtx.currentTime:0 }
+function tone(freq=440, dur=0.1, type='sine', gain=0.2, attack=0.005, release=0.03, pan=0){ if(!audioCtx||!AudioStore.enabled) return; const t0=now(); const o=audioCtx.createOscillator(); const g=audioCtx.createGain(); let p; if(audioCtx.createStereoPanner){ p=audioCtx.createStereoPanner(); p.pan.value=pan; o.connect(g).connect(p).connect(audioCtx.destination); } else { o.connect(g).connect(audioCtx.destination); }
+  o.type=type; o.frequency.setValueAtTime(freq, t0);
+  const v=Math.max(0,Math.min(1, AudioStore.volume))*gain; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(v, t0+attack); g.gain.linearRampToValueAtTime(0, t0+attack+Math.max(0,dur-release)); o.start(t0); o.stop(t0+attack+dur); }
+function blipUp(){ tone(420,0.06,'square',0.25); tone(600,0.06,'square',0.22,0.003,0.03,0.1); }
+function sparkle(){ tone(800,0.05,'triangle',0.18); setTimeout(()=>tone(1200,0.06,'triangle',0.16),40); setTimeout(()=>tone(1600,0.07,'triangle',0.14),90); }
+function levelUp(){ tone(500,0.08,'sine',0.18); setTimeout(()=>tone(700,0.08,'sine',0.18),90); setTimeout(()=>tone(900,0.12,'sine',0.18),180); }
+function errorBeep(){ tone(200,0.12,'sawtooth',0.22); }
+function deathLow(){ tone(140,0.18,'square',0.25); setTimeout(()=>tone(90,0.22,'square',0.20),120); }
+function reviveRise(){ tone(300,0.08,'sine',0.15); setTimeout(()=>tone(520,0.08,'sine',0.15),90); setTimeout(()=>tone(760,0.10,'sine',0.15),180); }
+function bossTick(){ tone(900,0.04,'square',0.18); }
+function archOn(){ tone(300,0.08,'sawtooth',0.22); setTimeout(()=>tone(180,0.10,'sawtooth',0.24),70); }
+function archBreak(){ tone(760,0.06,'square',0.22); setTimeout(()=>tone(980,0.06,'square',0.20),50); setTimeout(()=>tone(1220,0.08,'square',0.18),100); }
+function archSpawn(){ tone(340,0.12,'square',0.24); setTimeout(()=>tone(520,0.10,'square',0.22),110); setTimeout(()=>tone(260,0.12,'square',0.24),220); }
+function archKill(){ tone(480,0.10,'triangle',0.22); setTimeout(()=>tone(700,0.12,'triangle',0.20),100); setTimeout(()=>tone(980,0.16,'triangle',0.18),220); }
+const Sound={
+  play(name){ if(!_audioReady||!audioCtx||!AudioStore.enabled) return; switch(name){
+    case 'ui': blipUp(); break;
+    case 'hit': tone(320,0.035,'square',0.22); break;
+    case 'crit': tone(520,0.06,'triangle',0.22); setTimeout(()=>tone(740,0.05,'triangle',0.18),40); break;
+    case 'kill': blipUp(); break;
+    case 'level': levelUp(); break;
+    case 'buy': blipUp(); break;
+    case 'drop': sparkle(); break;
+    case 'error': errorBeep(); break;
+    case 'death': deathLow(); break;
+    case 'revive': reviveRise(); break;
+    case 'multi': for(let i=0;i<4;i++) setTimeout(()=>tone(420+i*60,0.03,'square',0.18), i*35); break;
+    case 'bossTick': bossTick(); break;
+    case 'archOn': archOn(); break;
+    case 'archBreak': archBreak(); break;
+    case 'archSpawn': archSpawn(); break;
+    case 'archKill': archKill(); break;
+  } },
+  setEnabled(v){ AudioStore.enabled=!!v; saveAudioSettings(); },
+  setVolume(v){ AudioStore.volume=Math.max(0,Math.min(1, v)); saveAudioSettings(); }
+};
+
+// Early load settings
+loadAudioSettings();
+
+// ===== Spawn / combat / rewards (with Archboss)
+function spawnMonster(){ const f=state.floor; const isArch=(f%30===0); const isBoss10=(!isArch && f%10===0); const bi=currentBlockIdx(); const theme=ensureThemeForBlock(bi); applyThemeSkin(theme); ui.themeBadge.textContent=themeLabel(theme);
+  let base=null,type='normal'; if(isArch){ base=choice(poolByTheme(ARCHBOSS_POOL,theme)); type='archboss'; } else if(isBoss10){ base=choice(poolByTheme(BOSS_POOL,theme)); type='boss'; } else { const r=Math.random(); if(r<0.012){ base=SPECIAL_POOL[1]; type='supermimic'; } else if(r<0.042){ base=SPECIAL_POOL[0]; type='mimic'; } else { base=choice(poolByTheme(MONSTER_POOL,theme)); } }
+  const hp0=eHP(f,isBoss10||isArch), gold0=eGold(f,isBoss10||isArch), atk0=eATK(f,isBoss10||isArch);
+  let hp=hp0, gold=gold0, atk=atk0, limit=0; if(type==='archboss'){ hp=Math.floor(hp0*3.0); gold=Math.floor(gold0*2.2); atk=Math.floor(atk0*1.6); limit=60000; } else if(type==='boss'){ hp=Math.floor(hp0*1.2); gold=Math.floor(gold0*1.1); atk=Math.floor(atk0*1.1); limit=30000; }
+  state.monster={name:`Lv${f} ${base.name}`,emoji:base.emoji,hp,maxHP:hp,gold,atk,isBoss:(type==='boss'||type==='archboss'),type,
+    barrierActive:false, barrierHits:0, barrierNeed: Math.max(6, Math.floor(4+f/6)), barrierNextAt:0, barrierEndsAt:0};
+  state.engaged=false; state.isDown=false; state.reviveAt=0; state.bossEndsAt=0; ui.monsterFace.textContent=base.emoji; ui.monsterName.textContent=state.monster.name; ui.monsterHPText.textContent=`${hp} / ${hp}`; ui.monsterHP.style.width='100%'; ui.floorBadge.innerHTML=`階層 ${state.floor} <span class="theme-badge" id="themeBadge">${themeLabel(theme)}</span>`; ui.themeBadge=document.getElementById('themeBadge'); refreshFloorButtons(); updateAttackBtn(); ui.archBadge.hidden=true; if(type==='archboss'){ Sound.play('archSpawn'); }
+}
 
 function awardKill(){ const m=state.monster; // pebbles small chance
-  if(Math.random()<0.05){ const k=Math.floor(state.floor/10); if(k>0){ state.pebbles+=k; toast(`+${k}`); }} const goldMult=(m.type==='mimic')?10:(m.type==='supermimic')?100:1; const expBase=Math.max(1,Math.floor(3+state.floor*0.6)); const expGain=expBase*goldMult; const goldGain=Math.floor(m.gold*goldMult*(1+goldB()/100)); state.gold+=goldGain; state.kills+=1; state.exp+=expGain; while(state.exp>=state.expToNext){ state.exp-=state.expToNext; state.level+=1; state.expToNext=Math.floor(state.expToNext*1.25+8); state.baseATK+=1; state.baseHP+=2; state.playerHP=recalcMaxHP(); toast('レベルアップ！ATK+1 / HP+2'); }
-  if(m.type==='mimic'||m.type==='supermimic'){ const minR=(m.type==='mimic')?'Rare':'Epic'; const it=makeItem(state.floor,minR); state.inv.push(it); if(state.autoEquip) tryAutoEquip(it); toast(`特別ドロップ：${renderItemText(it)}`); } else { const luck=(state.eq.ring?.goldB??0)*0.2; const drop=0.20+luck/100; if(Math.random()<drop){ const it=makeItem(state.floor); state.inv.push(it); if(state.autoEquip) tryAutoEquip(it); toast(`ドロップ：${renderItemText(it)}`); } else { toast(`+${goldGain}G / +${expGain}EXP`); } }
+  if(Math.random()<0.05){ const k=Math.floor(state.floor/10); if(k>0){ state.pebbles+=k; toast(`+${k}`); }} const goldMult=(m.type==='mimic')?10:(m.type==='supermimic')?100:1; const expBase=Math.max(1,Math.floor(3+state.floor*0.6)); const expGain=expBase*goldMult; const goldGain=Math.floor(m.gold*goldMult*(1+goldB()/100)); state.gold+=goldGain; state.kills+=1; state.exp+=expGain; while(state.exp>=state.expToNext){ state.exp-=state.expToNext; state.level+=1; state.expToNext=Math.floor(state.expToNext*1.25+8); state.baseATK+=1; state.baseHP+=2; state.playerHP=recalcMaxHP(); toast('レベルアップ！ATK+1 / HP+2'); Sound.play('level'); }
+  if(m.type==='mimic'||m.type==='supermimic'){ const minR=(m.type==='mimic')?'Rare':'Epic'; const it=makeItem(state.floor,minR); state.inv.push(it); if(state.autoEquip) tryAutoEquip(it); toast(`特別ドロップ：${renderItemText(it)}`); Sound.play('drop'); }
+  else if(m.type==='archboss'){
+    // Guaranteed high rarity drop and gem bonus
+    const lr = Math.random()<0.25?'Legendary':'Epic'; const it=makeItem(state.floor, lr); state.inv.push(it); if(state.autoEquip) tryAutoEquip(it); const gemGain=Math.max(1,Math.floor(state.floor/30)); state.magicStones+=gemGain; toast(`特別ボス撃破！ ${renderItemText(it)} / 魔石 +${gemGain}`); Sound.play('archKill');
+  } else {
+    const luck=(state.eq.ring?.goldB??0)*0.2; const drop=0.20+luck/100; if(Math.random()<drop){ const it=makeItem(state.floor); state.inv.push(it); if(state.autoEquip) tryAutoEquip(it); toast(`ドロップ：${renderItemText(it)}`); Sound.play('drop'); } else { toast(`+${goldGain}G / +${expGain}EXP`); }
+  }
   if(state.floor>state.maxFloor)state.maxFloor=state.floor; if(state.maxFloor>state.bestMaxFloor)state.bestMaxFloor=state.maxFloor; }
 
 function updateAttackBtn(){ const m=state.monster; if(!m) return; const expected=playerATK(); if(!state.engaged){ ui.attackBtn.textContent=(expected>=m.hp)?'倒す':'戦闘開始！'; return } ui.attackBtn.textContent=(expected>=m.hp)?'倒す':'攻撃（タップ）'; }
 function refreshFloorButtons(){ const canUpByBest=state.floor<state.bestMaxFloor; const dead=state.monster&&state.monster.hp<=0; ui.nextBtn.disabled=!(dead||canUpByBest); const bi=currentBlockIdx(); const t=state.themes[bi]?themeLabel(state.themes[bi]):'—'; ui.floorHint.textContent=`最高到達：${state.bestMaxFloor} 階 / テーマ：${t}`; }
-function beginEngage(){ if(!state.engaged){ state.engaged=true; if(state.monster.isBoss&&state.bossEndsAt===0){ state.bossEndsAt=Date.now()+30000; } } }
+function beginEngage(){ if(!state.engaged){ state.engaged=true; if(state.monster.isBoss&&state.bossEndsAt===0){ const isArch=state.monster.type==='archboss'; state.bossEndsAt=Date.now()+(isArch?60000:30000); if(isArch){ // schedule first barrier after short delay
+        state.monster.barrierNextAt=Date.now()+6000; state.monster.barrierEndsAt=0; }
+    } } }
 
-function doSingleKillAndAdvance(){ const wasFloor=state.floor; const wasBoss=!!state.monster?.isBoss; awardKill(); if(state.stay){ spawnMonster(); } else { state.floor+=1; spawnMonster(); } if(wasBoss && wasFloor%30===0){ updateFlavor('boss30'); } }
+function doSingleKillAndAdvance(){ const wasFloor=state.floor; const wasBoss=!!state.monster?.isBoss; const wasArch=state.monster?.type==='archboss'; awardKill(); if(state.stay){ spawnMonster(); } else { state.floor+=1; spawnMonster(); } if(wasBoss && wasFloor%30===0){ updateFlavor('boss30'); } if(wasArch){ ui.archBadge.hidden=true; } }
 
 function attack(){ if(!state.monster) return; if(state.playerHP<=0){ toast('…'); return; } beginEngage(); const m=state.monster; if(m.hp<=0) return; // Relic: Kashiwa multi-kill
-  if(state.relicActive.kashiwa){ const atk=playerATK(); if(atk>m.hp){ let remaining=atk, kills=0, safety=0; while(remaining>=state.monster.hp && safety<300){ remaining-=state.monster.hp; doSingleKillAndAdvance(); kills++; safety++; if(state.floor>1e7) break; } if(kills>=2){ toast(`敵を${kills}体倒した！`); const gm=gmReact(kills); if(gm) toast(gm); } updateAttackBtn(); refreshFloorButtons(); return; } }
-  const {dmg,isCrit}=clickDamage(); const dealt=Math.min(m.hp,dmg); m.hp-=dealt; ui.monsterHP.style.width=`${(m.hp/m.maxHP)*100}%`; ui.monsterHPText.textContent=`${m.hp} / ${m.maxHP}`; if(isCrit){ pushLog(`<span class="log-num-orange">${dealt}</span>ダメージをあたえた！ <span class="log-crit-red">「クリティカル！」</span>`); } else { pushLog(`<span class="log-num-yellow">${dealt}</span>ダメージをあたえた！`); }
+  if(state.relicActive.kashiwa){ const atk=playerATK(); if(atk>m.hp && !(m.type==='archboss')){ let remaining=atk, kills=0, safety=0; while(remaining>=state.monster.hp && safety<300){ remaining-=state.monster.hp; doSingleKillAndAdvance(); kills++; safety++; if(state.floor>1e7) break; } if(kills>=2){ toast(`敵を${kills}体倒した！`); const gm=gmReact(kills); if(gm) toast(gm); } updateAttackBtn(); refreshFloorButtons(); return; } }
+  const {dmg,isCrit}=clickDamage(); let dealt=Math.min(m.hp,dmg);
+  // Archboss barrier effect
+  if(m.type==='archboss' && m.barrierActive){ m.barrierHits++; const need=m.barrierNeed; ui.archBadge.textContent=`障壁 ${Math.min(m.barrierHits,need)}/${need}`; dealt=Math.ceil(dealt*0.2); if(m.barrierHits>=need){ m.barrierActive=false; m.barrierHits=0; m.barrierNextAt=Date.now()+8000; m.barrierEndsAt=0; ui.archBadge.hidden=true; toast('障壁が割れた！'); Sound.play('archBreak'); }
+  }
+  m.hp-=dealt; ui.monsterHP.style.width=`${(m.hp/m.maxHP)*100}%`; ui.monsterHPText.textContent=`${m.hp} / ${m.maxHP}`; if(isCrit){ pushLog(`<span class="log-num-orange">${dealt}</span>ダメージをあたえた！ <span class="log-crit-red">「クリティカル！」</span>`); Sound.play('crit'); } else { pushLog(`<span class="log-num-yellow">${dealt}</span>ダメージをあたえた！`); Sound.play('hit'); }
   if(m.hp<=0){ doSingleKillAndAdvance(); }
   updateAttackBtn(); refreshFloorButtons(); }
 
-function enemyTick(dt){ if(!state.monster||!state.engaged||state.isDown)return; const m=state.monster; if(m.hp<=0)return; const dps=Math.max(0,m.atk-playerDEF()*0.6); const dmg=dps*dt; if(dmg<=0)return; state.playerHP-=dmg; if(state.playerHP<=0&&!state.isDown){ state.playerHP=0; state.isDown=true; state.deaths+=1; state.reviveAt=Date.now()+5000; toast(`気絶しました…${5}秒後に復活`); } }
+function enemyTick(dt){ if(!state.monster||!state.engaged||state.isDown)return; const m=state.monster; if(m.hp<=0)return; const dps=Math.max(0,m.atk-playerDEF()*0.6); const dmg=dps*dt; if(dmg<=0)return; state.playerHP-=dmg; if(state.playerHP<=0&&!state.isDown){ state.playerHP=0; state.isDown=true; state.deaths+=1; state.reviveAt=Date.now()+5000; toast(`気絶しました…${5}秒後に復活`); Sound.play('death'); } }
 function regenTick(dt){ if(state.playerHP>0){ const mx=recalcMaxHP(); state.playerHP=clamp(state.playerHP+dt*(0.8+state.level*0.02),0,mx); } }
 function autoTapTick(dt){ if(state.autoTap<=0||!state.engaged||state.isDown) return; autoTapTick._acc=(autoTapTick._acc||0)+state.autoTap*dt; while(autoTapTick._acc>=1){ autoTapTick._acc-=1; attack(); } }
-function timersTick(){ let txt=[]; if(state.reviveAt>0){ const left=Math.max(0,state.reviveAt-Date.now()); txt.push(`${Math.ceil(left/1000)}s`); if(left<=0){ state.reviveAt=0; state.playerHP=recalcMaxHP(); state.isDown=false; state.engaged=false; toast('復活！'); updateAttackBtn(); } }
-  if(state.bossEndsAt>0){ const left=Math.max(0,state.bossEndsAt-Date.now()); txt.push(`${Math.ceil(left/1000)}s`); if(left<=0){ state.bossEndsAt=0; toast('…'); state.floor=Math.max(1,state.floor-1); spawnMonster(); } }
+function timersTick(){ let txt=[]; if(state.reviveAt>0){ const left=Math.max(0,state.reviveAt-Date.now()); txt.push(`${Math.ceil(left/1000)}s`); if(left<=0){ state.reviveAt=0; state.playerHP=recalcMaxHP(); state.isDown=false; state.engaged=false; toast('復活！'); Sound.play('revive'); updateAttackBtn(); } }
+  if(state.bossEndsAt>0){ const left=Math.max(0,state.bossEndsAt-Date.now()); const sec=Math.ceil(left/1000); txt.push(`${sec}s`); const isArch=state.monster?.type==='archboss'; if((isArch && sec<=10) || (!isArch && sec<=5)){ Sound.play('bossTick'); }
+    if(left<=0){ state.bossEndsAt=0; toast('…'); state.floor=Math.max(1,state.floor-1); spawnMonster(); } }
+  // Archboss barrier scheduling
+  if(state.engaged && state.monster?.type==='archboss' && state.playerHP>0){ const m=state.monster; const nowT=Date.now(); if(!m.barrierActive && m.barrierNextAt>0 && nowT>=m.barrierNextAt){ m.barrierActive=true; m.barrierHits=0; m.barrierEndsAt=nowT+6000; ui.archBadge.hidden=false; ui.archBadge.textContent=`障壁 0/${m.barrierNeed}`; toast('ボスが障壁を展開！タップで割れ！'); Sound.play('archOn'); }
+    if(m.barrierActive && nowT>=m.barrierEndsAt){ // timeout ends barrier, reschedule sooner
+      m.barrierActive=false; m.barrierHits=0; m.barrierNextAt=nowT+6000; m.barrierEndsAt=0; ui.archBadge.hidden=true; }
+  }
   ui.timerAll.textContent=txt.join(' / ');
   if(Date.now()>=_flavorNextAt){ updateFlavor('timer'); }
 }
@@ -540,74 +623,65 @@ function importSaveFromText(raw){ try{ JSON.parse(raw); localStorage.setItem(SAV
 function rarityCls(r){return `rarity-${(r||'Common')}`} function colored(name,rarity){return `<span class="${rarityCls(rarity)} rarity-Label">${name}</span>`}
 function renderEquipped(){ const w=state.eq.weapon,a=state.eq.armor,r=state.eq.ring; ui.eqWeapon.innerHTML=w?colored(w.name,w.rarity):'なし'; ui.eqArmor.innerHTML=a?colored(a.name,a.rarity):'なし'; ui.eqRing.innerHTML=r?colored(r.name,r.rarity):'なし'; }
 function renderInventory(){ const box=ui.invList; if(!box) return; box.innerHTML=''; const ft=state.invFilter||'all'; const filtered=state.inv.filter(it=>ft==='all'?true:it.slot===ft); if(ui.invFilterInfo){ const total=state.inv.length,cnt=filtered.length; const labelMap={all:'すべて',weapon:'武器',armor:'鎧',ring:'指輪'}; ui.invFilterInfo.textContent=`${labelMap[ft]}：${cnt} 件 / 全 ${total} 件`; }
-  const tools=document.createElement('div'); tools.className='row'; tools.innerHTML=`<div class="small">一括売却：</div><div class="wrap" style="gap:.4rem"><button class="btn mini bulk-sell" data-r="Common">コモン</button><button class="btn mini bulk-sell" data-r="Uncommon">アンコモン</button><button class="btn mini bulk-sell" data-r="Rare">レア</button><button class="btn mini bulk-sell" data-r="Epic">エピック</button><button class="btn mini bulk-sell" data-r="Legendary">レジェンド</button></div>`; box.appendChild(tools); tools.querySelectorAll('.bulk-sell').forEach(btn=>{ btn.addEventListener('click',()=>{ const rar=btn.getAttribute('data-r'); const sellable=state.inv.filter(it=>it.rarity===rar); if(sellable.length===0){ toast(`${rar} は所持なし`); return } const total=sellable.reduce((s,it)=>s+Math.floor(it.value),0); if(!confirm(`${rar} を ${sellable.length}件、合計 ${total}G で売却しますか？`)) return; state.inv=state.inv.filter(it=>it.rarity!==rar); state.gold+=total; renderInventory(); updateUI(); toast(`+${total}G（${rar} x${sellable.length}）`); }); });
-  for(const it of filtered){ const div=document.createElement('div'); div.className='card'; div.innerHTML=`<div><b class="${rarityCls(it.rarity)}">${it.name}</b></div><div class="small">${renderItemText(it)}</div>`; const row=document.createElement('div'); row.className='row'; const e=document.createElement('button'); e.className='btn'; e.textContent='装備'; e.onclick=()=>{ state.eq[it.slot]=it; toast(`装備：${renderItemText(it)}`); updateUI(); }; const s=document.createElement('button'); s.className='btn gold'; s.textContent=`売却 (+${Math.floor(it.value)}G)`; s.onclick=()=>{ state.gold+=Math.floor(it.value); state.inv=state.inv.filter(x=>x!==it); renderInventory(); updateUI(); }; row.appendChild(e); row.appendChild(s); div.appendChild(row); box.appendChild(div); }
+  const tools=document.createElement('div'); tools.className='row'; tools.innerHTML=`<div class="small">一括売却：</div><div class="wrap" style="gap:.4rem"><button class="btn mini bulk-sell" data-r="Common">コモン</button><button class="btn mini bulk-sell" data-r="Uncommon">アンコモン</button><button class="btn mini bulk-sell" data-r="Rare">レア</button><button class="btn mini bulk-sell" data-r="Epic">エピック</button><button class="btn mini bulk-sell" data-r="Legendary">レジェンド</button></div>`; box.appendChild(tools); tools.querySelectorAll('.bulk-sell').forEach(btn=>{ btn.addEventListener('click',()=>{ const rar=btn.getAttribute('data-r'); const sellable=state.inv.filter(it=>it.rarity===rar); if(sellable.length===0){ toast(`${rar} は所持なし`); Sound.play('error'); return } const total=sellable.reduce((s,it)=>s+Math.floor(it.value),0); if(!confirm(`${rar} を ${sellable.length}件、合計 ${total}G で売却しますか？`)) return; state.inv=state.inv.filter(it=>it.rarity!==rar); state.gold+=total; renderInventory(); updateUI(); toast(`+${total}G（${rar} x${sellable.length}）`); Sound.play('buy'); }); });
+  for(const it of filtered){ const div=document.createElement('div'); div.className='card'; div.innerHTML=`<div><b class="${rarityCls(it.rarity)}">${it.name}</b></div><div class="small">${renderItemText(it)}</div>`; const row=document.createElement('div'); row.className='row'; const e=document.createElement('button'); e.className='btn'; e.textContent='装備'; e.onclick=()=>{ state.eq[it.slot]=it; toast(`装備：${renderItemText(it)}`); Sound.play('buy'); updateUI(); }; const s=document.createElement('button'); s.className='btn gold'; s.textContent=`売却 (+${Math.floor(it.value)}G)`; s.onclick=()=>{ state.gold+=Math.floor(it.value); state.inv=state.inv.filter(x=>x!==it); renderInventory(); updateUI(); Sound.play('buy'); }; row.appendChild(e); row.appendChild(s); div.appendChild(row); box.appendChild(div); }
 }
 
 // ===== Footer nav & subtabs
 const fTabs=$$('#mainFooter .ftab');
-function switchMainTab(tabId){ [ui.tabUpg,ui.tabInv,ui.tabSta,ui.tabAdv,ui.tabSettings].forEach(el=>el.setAttribute('hidden','')); document.getElementById(tabId).removeAttribute('hidden'); fTabs.forEach(btn=>btn.classList.toggle('active', btn.getAttribute('data-tab')===tabId)); }
+function switchMainTab(tabId){ [ui.tabUpg,ui.tabInv,ui.tabSta,ui.tabAdv,ui.tabSettings].forEach(el=>el.setAttribute('hidden','')); document.getElementById(tabId).removeAttribute('hidden'); fTabs.forEach(btn=>btn.classList.toggle('active', btn.getAttribute('data-tab')===tabId)); Sound.play('ui'); }
 fTabs.forEach(btn=>btn.addEventListener('click',()=>switchMainTab(btn.getAttribute('data-tab'))));
-ui.advTabs.forEach(btn=>{ btn.addEventListener('click',()=>{ ui.advTabs.forEach(x=>x.classList.remove('active')); btn.classList.add('active'); const id=btn.getAttribute('data-advtab'); ui.advAsc.setAttribute('hidden',''); ui.advRelic.setAttribute('hidden',''); document.getElementById(id).removeAttribute('hidden'); }); });
+ui.advTabs.forEach(btn=>{ btn.addEventListener('click',()=>{ ui.advTabs.forEach(x=>x.classList.remove('active')); btn.classList.add('active'); const id=btn.getAttribute('data-advtab'); ui.advAsc.setAttribute('hidden',''); ui.advRelic.setAttribute('hidden',''); document.getElementById(id).removeAttribute('hidden'); Sound.play('ui'); }); });
 
 // ===== Buttons
 let _holding=false,_t=0,_saw=false; function onPD(e){ e.preventDefault(); _saw=true; _t=Date.now(); if(_holding) return; _holding=true; attack(); } function onPU(){ _holding=false }
 function bindInput(el){ if(!el) return; if(window.PointerEvent){ el.addEventListener('pointerdown',onPD,{passive:false}); el.addEventListener('pointerup',onPU); el.addEventListener('pointercancel',onPU); el.addEventListener('pointerleave',onPU); } else { el.addEventListener('click',()=>{ if(_saw && Date.now()-_t<200) return; attack(); }); } }
 bindInput($('#attackBtn')); bindInput($('#monster'));
 document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
-ui.nextBtn.addEventListener('click',()=>{ const canUpByBest=state.floor<state.bestMaxFloor; const dead=state.monster && state.monster.hp<=0; if(!(dead||canUpByBest)){ toast('まだ進めない…'); return } state.floor+=1; state.playerHP=recalcMaxHP(); state.isDown=false; state.reviveAt=0; state.engaged=false; state.bossEndsAt=0; spawnMonster(); updateUI() });
-ui.fleeBtn.addEventListener('click',()=>{ state.floor=Math.max(1,state.floor-1); state.playerHP=recalcMaxHP(); state.isDown=false; state.reviveAt=0; state.engaged=false; state.bossEndsAt=0; spawnMonster(); updateUI() });
-ui.stayCb.addEventListener('change',e=>{ state.stay=e.target.checked; save(false) });
-ui.jumpBtn&&ui.jumpBtn.addEventListener('click',()=>{ const v=parseInt(ui.jumpInput.value||''); if(!v||v<1){ toast('階層を入力'); return } const maxAvail=Math.max(1, state.bestMaxFloor); const to=clamp(v,1,maxAvail); state.floor=to; state.playerHP=recalcMaxHP(); state.isDown=false; state.reviveAt=0; state.engaged=false; state.bossEndsAt=0; spawnMonster(); updateUI(); });
-
-// ===== Upgrades
-function tryBuy(costKey, applyFn){ const price=prices[costKey]; if(state.gold<price){ toast('Gが足りない'); return false } state.gold-=price; prices[costKey]=Math.ceil(price*1.18+1); applyFn(); updateUI(); save(false); return true }
-ui.buyAtk.addEventListener('click',()=>tryBuy('atk',()=>{ state.upg.atk++; state.baseATK++; toast('ATK +1'); }));
-ui.buyHP.addEventListener('click',()=>tryBuy('hp',()=>{ state.upg.hp++; state.baseHP+=5; state.playerHP=recalcMaxHP(); toast('最大HP +5'); }));
-ui.buyAuto.addEventListener('click',()=>tryBuy('auto',()=>{ state.upg.auto++; state.autoTap=(state.autoTap||0)+0.2; toast('自動タップ +0.2/s'); }));
-$$('#tab-upg .btn.mini').forEach(btn=>btn.addEventListener('click',()=>{
-  const key=(btn.getAttribute('data-bulk')||'').split('-')[0]; const mode=(btn.getAttribute('data-bulk')||'').split('-')[1]; let n=0; if(mode==='10')n=10; else if(mode==='100')n=100; else if(mode==='max')n=1e9; else n=1; for(let i=0;i<n;i++){ const before=state.gold; const ok=key==='atk'? tryBuy('atk',()=>{state.upg.atk++; state.baseATK++;}) : key==='hp'? tryBuy('hp',()=>{state.upg.hp++; state.baseHP+=5; state.playerHP=recalcMaxHP();}) : tryBuy('auto',()=>{state.upg.auto++; state.autoTap+=0.2;}); if(!ok) break; if(state.gold===before) break; } updateUI(); save(false); }));
-
-// ===== Auto equip toggle
-ui.autoEquip.addEventListener('change',e=>{ state.autoEquip=!!e.target.checked; save(false) });
+ui.nextBtn.addEventListener('click',()=>{ const canUpByBest=state.floor<state.bestMaxFloor; const dead=state.monster && state.monster.hp<=0; if(!(dead||canUpByBest)){ toast('まだ進めない…'); Sound.play('error'); return } state.floor+=1; state.playerHP=recalcMaxHP(); state.isDown=false; state.reviveAt=0; state.engaged=false; state.bossEndsAt=0; spawnMonster(); updateUI(); Sound.play('ui'); });
+ui.fleeBtn.addEventListener('click',()=>{ state.floor=Math.max(1,state.floor-1); state.playerHP=recalcMaxHP(); state.isDown=false; state.reviveAt=0; state.engaged=false; state.bossEndsAt=0; spawnMonster(); updateUI(); Sound.play('ui'); });
+ui.stayCb.addEventListener('change',e=>{ state.stay=e.target.checked; save(false); Sound.play('ui'); });
+ui.jumpBtn&&ui.jumpBtn.addEventListener('click',()=>{ const v=parseInt(ui.jumpInput.value||''); if(!v||v<1){ toast('階層を入力'); Sound.play('error'); return } const maxAvail=Math.max(1, state.bestMaxFloor); const to=clamp(v,1,maxAvail); state.floor=to; state.playerHP=recalcMaxHP(); state.isDown=false; state.reviveAt=0; state.engaged=false; state.bossEndsAt=0; spawnMonster(); updateUI(); Sound.play('ui'); });
 
 // ===== Ascend & Souls
-function ascend(){ const g=Math.floor(state.maxFloor/30); if(g<=0){ toast('…'); return } if(!confirm('転生しますか？'))return; state.souls+=g; state.magicStones+=state.pebbles; state.pebbles=0; const keepBest=Math.max(state.bestMaxFloor,state.maxFloor); const keepSouls=state.souls; const keepSoulUp={...state.soulUp}; const keepSoulsSpent=state.soulsSpent; Object.assign(state,{ gold:0,level:1,exp:0,expToNext:20,floor:1,maxFloor:1,kills:0,deaths:0, baseATK:1,baseHP:10,baseDEF:0,baseCRIT:5, autoTap:0, eq:{weapon:null,armor:null,ring:null}, inv:[], autoEquip:state.autoEquip, monster:null, playerHP:10,bossEndsAt:0, souls:keepSouls, soulsSpent:keepSoulsSpent, soulUp:keepSoulUp, bestMaxFloor:keepBest, isDown:false, engaged:false, reviveAt:0, stay:state.stay, pebbles:0, magicStones:state.magicStones, upg:state.upg, unlocks:state.unlocks, relicActive:state.relicActive, themes:state.themes, username:state.username, lastSeenVersion:GAME_VERSION }); prices.atk=10; prices.hp=10; prices.auto=25; spawnMonster(); updateUI(); renderInventory(); toast('OK'); }
+function ascend(){ const g=Math.floor(state.maxFloor/30); if(g<=0){ toast('…'); Sound.play('error'); return } if(!confirm('転生しますか？'))return; state.souls+=g; state.magicStones+=state.pebbles; state.pebbles=0; const keepBest=Math.max(state.bestMaxFloor,state.maxFloor); const keepSouls=state.souls; const keepSoulUp={...state.soulUp}; const keepSoulsSpent=state.soulsSpent; Object.assign(state,{ gold:0,level:1,exp:0,expToNext:20,floor:1,maxFloor:1,kills:0,deaths:0, baseATK:1,baseHP:10,baseDEF:0,baseCRIT:5, autoTap:0, eq:{weapon:null,armor:null,ring:null}, inv:[], autoEquip:state.autoEquip, monster:null, playerHP:10,bossEndsAt:0, souls:keepSouls, soulsSpent:keepSoulsSpent, soulUp:keepSoulUp, bestMaxFloor:keepBest, isDown:false, engaged:false, reviveAt:0, stay:state.stay, pebbles:0, magicStones:state.magicStones, upg:state.upg, unlocks:state.unlocks, relicActive:state.relicActive, themes:state.themes, username:state.username, lastSeenVersion:GAME_VERSION }); prices.atk=10; prices.hp=10; prices.auto=25; spawnMonster(); updateUI(); renderInventory(); toast('OK'); Sound.play('level'); }
 ui.ascendBtn&&ui.ascendBtn.addEventListener('click',ascend);
 function nextSoulCost(level){ return 1 + level }
-function tryBuySoul(key){ const lv=state.soulUp[key]||0; const cost=nextSoulCost(lv); if(state.souls<cost){ toast('ソウルが足りない'); return false } state.souls-=cost; state.soulsSpent+=cost; state.soulUp[key]=lv+1; updateUI(); save(false); return true }
+function tryBuySoul(key){ const lv=state.soulUp[key]||0; const cost=nextSoulCost(lv); if(state.souls<cost){ toast('ソウルが足りない'); Sound.play('error'); return false } state.souls-=cost; state.soulsSpent+=cost; state.soulUp[key]=lv+1; updateUI(); save(false); Sound.play('buy'); return true }
 ui.soulBuyAtk&&ui.soulBuyAtk.addEventListener('click',()=>{ if(tryBuySoul('atk')) toast('永続ATK +2%'); });
 ui.soulBuyHP&&ui.soulBuyHP.addEventListener('click',()=>{ if(tryBuySoul('hp')) toast('永続HP +2%'); });
 ui.soulBuyGold&&ui.soulBuyGold.addEventListener('click',()=>{ if(tryBuySoul('gold')) toast('永続Gold +2%'); });
 
 // ===== Relics & Codes
-ui.codeBtn.addEventListener('click',()=>{ const code=(ui.codeInput.value||'').trim(); if(!code){ ui.codeStatus.textContent='コードを入力'; return } if(code==='kashiwa060925'){ if(state.unlocks.kashiwa){ ui.codeStatus.textContent='使用済み'; return } state.unlocks.kashiwa=true; ui.codeStatus.textContent='OK：柏の加護を入手'; updateUI(); save(false); return; } if(code==='kashiwa77'){ if(state.unlocks.strongsword){ ui.codeStatus.textContent='使用済み'; return } state.unlocks.strongsword=true; ui.codeStatus.textContent='OK：ツヨスギテ=クサハエルを入手'; updateUI(); save(false); return; } ui.codeStatus.textContent='NG'; });
-ui.relicKashiwa&&ui.relicKashiwa.addEventListener('change',e=>{ state.relicActive.kashiwa=e.target.checked; save(false) });
-ui.relicStrongSword&&ui.relicStrongSword.addEventListener('change',e=>{ state.relicActive.strongsword=e.target.checked; save(false) });
+ui.codeBtn.addEventListener('click',()=>{ const code=(ui.codeInput.value||'').trim(); if(!code){ ui.codeStatus.textContent='コードを入力'; Sound.play('error'); return } if(code==='kashiwa060925'){ if(state.unlocks.kashiwa){ ui.codeStatus.textContent='使用済み'; Sound.play('error'); return } state.unlocks.kashiwa=true; ui.codeStatus.textContent='OK：柏の加護を入手'; updateUI(); save(false); Sound.play('buy'); return; } if(code==='kashiwa77'){ if(state.unlocks.strongsword){ ui.codeStatus.textContent='使用済み'; Sound.play('error'); return } state.unlocks.strongsword=true; ui.codeStatus.textContent='OK：ツヨスギテ=クサハエルを入手'; updateUI(); save(false); Sound.play('buy'); return; } ui.codeStatus.textContent='NG'; Sound.play('error'); });
+ui.relicKashiwa&&ui.relicKashiwa.addEventListener('change',e=>{ state.relicActive.kashiwa=e.target.checked; save(false); Sound.play('ui'); });
+ui.relicStrongSword&&ui.relicStrongSword.addEventListener('change',e=>{ state.relicActive.strongsword=e.target.checked; save(false); Sound.play('ui'); });
 
 // ===== Export/Import in Settings
-ui.downloadBtn&&ui.downloadBtn.addEventListener('click',()=>{ const name=(ui.exportName.value||defaultDownloadName())+'.json'; const blob=new Blob([localStorage.getItem(SAVE_KEY)||'{}'],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); });
-ui.importFileBtn&&ui.importFileBtn.addEventListener('click',()=>{ openFileInput(ui.fileOpenSettings) });
+ui.downloadBtn&&ui.downloadBtn.addEventListener('click',()=>{ const name=(ui.exportName.value||defaultDownloadName())+'.json'; const blob=new Blob([localStorage.getItem(SAVE_KEY)||'{}'],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); Sound.play('ui'); });
+ui.importFileBtn&&ui.importFileBtn.addEventListener('click',()=>{ openFileInput(ui.fileOpenSettings); Sound.play('ui'); });
 function openFileInput(el){ el.value=''; el.click(); }
 function readFileAsText(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsText(file,'utf-8'); }); }
-ui.fileOpenSettings&&ui.fileOpenSettings.addEventListener('change',async e=>{ const f=e.target.files?.[0]; if(!f) return; try{ const txt=await readFileAsText(f); if(importSaveFromText(txt)){ toast('読み込みOK'); updateUI(); renderInventory(); } }catch(_){ toast('読込エラー'); } });
+ui.fileOpenSettings&&ui.fileOpenSettings.addEventListener('change',async e=>{ const f=e.target.files?.[0]; if(!f) return; try{ const txt=await readFileAsText(f); if(importSaveFromText(txt)){ toast('読み込みOK'); updateUI(); renderInventory(); Sound.play('buy'); } }catch(_){ toast('読込エラー'); Sound.play('error'); } });
 
 // ===== Other settings
 ui.wipeBtn&&ui.wipeBtn.addEventListener('click',()=>{ if(!confirm('全セーブを削除します。OK?')) return; localStorage.removeItem(SAVE_KEY); location.reload(); });
-ui.nameSave&&ui.nameSave.addEventListener('click',()=>{ const nm=(ui.nameEdit.value||'').trim(); if(!nm){ toast('名前を入力'); return } state.username=nm; save(false); toast('OK'); });
+ui.nameSave&&ui.nameSave.addEventListener('click',()=>{ const nm=(ui.nameEdit.value||'').trim(); if(!nm){ toast('名前を入力'); Sound.play('error'); return } state.username=nm; save(false); toast('OK'); Sound.play('buy'); });
 
-// ===== Start overlay (robust)
+// ===== Start overlay (robust) + unlock audio
 function hasSave(){ try{ return !!localStorage.getItem(SAVE_KEY) }catch(e){ return false } }
 function setPrimaryButton(){ if(hasSave()){ ui.btnPrimary.setAttribute('data-mode','local'); ui.btnPrimary.textContent='コンティニュー'; } else { ui.btnPrimary.setAttribute('data-mode','new'); ui.btnPrimary.textContent='ニューゲーム'; } }
-function beginGame(uname){ if(!uname) uname='旅人'; state.username=uname; state.playerHP=recalcMaxHP(); spawnMonster(); renderInventory(); updateUI(); save(false); ui.startOverlay.hidden=true; startLoop(); }
-ui.btnPrimary.addEventListener('click',()=>{ const mode=ui.btnPrimary.getAttribute('data-mode'); if(mode==='local'){ if(load(false)){ beginGame(state.username||'旅人'); } else { ui.startNote.textContent='セーブが見つかりません → ニューゲームを開始できます'; setPrimaryButton(); } } else if(mode==='new'){ const nm=(ui.startName.value||'').trim(); beginGame(nm); } else if(mode==='file'){ openFileInput(ui.fileOpenStart); } });
+function beginGame(uname){ if(!uname) uname='旅人'; state.username=uname; state.playerHP=recalcMaxHP(); spawnMonster(); renderInventory(); updateUI(); save(false); ui.startOverlay.hidden=true; startLoop(); Sound.play('ui'); }
+function onAnyStartAction(){ seInitOnUserGesture(); }
+['click','pointerdown','touchstart','keydown'].forEach(ev=>{ ui.btnPrimary.addEventListener(ev,onAnyStartAction,{passive:true}); ui.btnBegin.addEventListener(ev,onAnyStartAction,{passive:true}); ui.btnStartImportFile.addEventListener(ev,onAnyStartAction,{passive:true}); document.addEventListener(ev,onAnyStartAction,{once:true,passive:true}); });
+ui.btnPrimary.addEventListener('click',()=>{ const mode=ui.btnPrimary.getAttribute('data-mode'); if(mode==='local'){ if(load(false)){ beginGame(state.username||'旅人'); } else { ui.startNote.textContent='セーブが見つかりません → ニューゲームを開始できます'; setPrimaryButton(); Sound.play('error'); } } else if(mode==='new'){ const nm=(ui.startName.value||'').trim(); beginGame(nm); } else if(mode==='file'){ openFileInput(ui.fileOpenStart); } });
 ui.btnStartImportFile.addEventListener('click',()=>openFileInput(ui.fileOpenStart));
-ui.fileOpenStart.addEventListener('change',async e=>{ const f=e.target.files?.[0]; if(!f) return; try{ const txt=await readFileAsText(f); if(importSaveFromText(txt)){ beginGame(state.username||'旅人'); } }catch(_){ ui.startNote.textContent='読込エラー'; } });
+ui.fileOpenStart.addEventListener('change',async e=>{ const f=e.target.files?.[0]; if(!f) return; try{ const txt=await readFileAsText(f); if(importSaveFromText(txt)){ beginGame(state.username||'旅人'); Sound.play('buy'); } }catch(_){ ui.startNote.textContent='読込エラー'; Sound.play('error'); } });
 ui.btnBegin.addEventListener('click',()=>{ const nm=(ui.startName.value||'').trim(); beginGame(nm); });
 ui.startName.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); ui.btnBegin.click(); } });
 
 // ===== Header collapse toggle & flavor bar link
-function applyCollapsed(col){ if(col){ ui.topCollapsed.removeAttribute('hidden'); ui.topExpanded.setAttribute('hidden',''); ui.toggleInfo.setAttribute('aria-expanded','false'); ui.toggleInfo.textContent='▼ 詳細'; ui.flavorBar && (ui.flavorBar.hidden=false); } else { ui.topCollapsed.setAttribute('hidden',''); ui.topExpanded.removeAttribute('hidden'); ui.toggleInfo.setAttribute('aria-expanded','true'); ui.toggleInfo.textContent='▲ 閉じる'; ui.flavorBar && (ui.flavorBar.hidden=true); } localStorage.setItem(UI_MODE,col?'1':'0'); if(ui.flavorBar && ui.flavorBar.hidden===false && !_flavorNextAt){ updateFlavor('timer'); } }
+function applyCollapsed(col){ if(col){ ui.topCollapsed.removeAttribute('hidden'); ui.topExpanded.setAttribute('hidden',''); ui.toggleInfo.setAttribute('aria-expanded','false'); ui.toggleInfo.textContent='▼ 詳細'; ui.flavorBar && (ui.flavorBar.hidden=false); } else { ui.topCollapsed.setAttribute('hidden',''); ui.topExpanded.removeAttribute('hidden'); ui.toggleInfo.setAttribute('aria-expanded','true'); ui.toggleInfo.textContent='▲ 閉じる'; ui.flavorBar && (ui.flavorBar.hidden=true); } localStorage.setItem(UI_MODE,col?'1':'0'); if(ui.flavorBar && ui.flavorBar.hidden===false && !_flavorNextAt){ updateFlavor('timer'); } Sound.play('ui'); }
 ui.toggleInfo.addEventListener('click',()=>{ const col=ui.toggleInfo.getAttribute('aria-expanded')==='true'; applyCollapsed(col) });
 
 // ===== Loop & UI refresh
