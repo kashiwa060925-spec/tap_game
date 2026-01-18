@@ -7,11 +7,11 @@
 <meta name="theme-color" content="#0f1220">
 <style>
   :root{
-    --c-bg:#0b0f1f;--c-panel:#171a2b;--c-text:#e8eefc;--c-sub:#aab6d6;--c-danger:#ff6b6b;--c-gold:#ffd76a;--c-accent:#6eb6ff;
+    --c-bg:#0b0f1f;--c-panel:#171a2b;--c-text:#e8eefc;--c-sub:#aab6d6;--c-danger:#ff6b6b;--c-gold:#ffd76a;
     --bg1:#0b0f1f; --bg2:#0a0d1a;           /* page background */
     --monster1:#141937; --monster2:#101635; /* monster card gradient */
     --t-accent:#6eb6ff;                      /* theme accent */
-    --footer-h:128px;                         /* footer height estimate */
+    --footer-h:128px;                        /* footer height estimate */
   }
   *{box-sizing:border-box}
   html,body{height:100%;-webkit-text-size-adjust:100%;touch-action:manipulation}
@@ -24,7 +24,7 @@
   .bar{width:160px;height:12px;border-radius:8px;background:#101425;border:1px solid #283055;overflow:hidden}
   .bar>span{display:block;height:100%;background:linear-gradient(90deg,#2ddf7f,#67e3a3);width:100%}
   .small{font-size:.85rem;color:var(--c-sub)}
-  .toggle{justify-self:end;background:#121639;border:1px solid #2a2f66;color:#c9d6ff;padding:.45rem .6rem;border-radius:10px}
+  .toggle{justify-self:end;background:#121639;border:1px solid #2a2f66;color:#c9d6ff;padding:.45rem .6rem;border-radius:10px;cursor:pointer}
   .toggle[aria-expanded='true']{background:#1a2053}
   main{max-width:1200px;margin:0 auto;padding:1rem; padding-bottom:calc(var(--footer-h) + 24px + env(safe-area-inset-bottom));}
   .layout{display:grid;grid-template-columns:1.2fr .9fr;gap:1rem}
@@ -78,6 +78,14 @@
   /* Settings: sound slider */
   .range{appearance:none;width:100%;height:8px;border-radius:6px;background:#0b0f25;border:1px solid color-mix(in oklab, var(--t-accent), #000 60%)}
   .range::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:#cfe0ff;border:1px solid color-mix(in oklab, var(--t-accent), #000 60%)}
+
+  /* Rarity (inventory) minimal colors */
+  .rarity-Label{padding:.05rem .3rem;border-radius:.4rem}
+  .rarity-Common{background:#1a2038;color:#bfc7e9}
+  .rarity-Uncommon{background:#162a22;color:#bfe9d2}
+  .rarity-Rare{background:#162238;color:#bfd1e9}
+  .rarity-Epic{background:#251638;color:#e0bfe9}
+  .rarity-Legendary{background:#382616;color:#f9e0b6}
 </style>
 </head>
 <body>
@@ -89,7 +97,7 @@
     <div class="start-box" style="width:min(720px,92vw);display:grid;gap:1rem;justify-items:center;text-align:center;background:#151a2eaa;border:1px solid rgba(42,47,102,.95);border-radius:14px;backdrop-filter:blur(6px);box-shadow:0 16px 48px #0008;padding:20px">
       <div class="game-title" id="startTitle" style="font-size:28px;font-weight:800;letter-spacing:.02em;line-height:1.15">ハクスラ・タップRPG</div>
       <div class="title-logo" id="titleLogo" style="font-size:26px">⚔️ 🛡️ 💎</div>
-      <div class="hint">バージョン：<span id="verText">0.9.5</span> ／ セーブ検出：<span id="saveDetect" class="badge" style="display:inline-block;background:#0f1536;border:1px solid #2a2f66;padding:.2rem .5rem;border-radius:10px;color:#cfe0ff">…</span></div>
+      <div class="hint">バージョン：<span id="verText">0.9.8</span> ／ セーブ検出：<span id="saveDetect" class="badge" style="display:inline-block;background:#0f1536;border:1px solid #2a2f66;padding:.2rem .5rem;border-radius:10px;color:#cfe0ff">…</span></div>
 
       <div class="start-actions" style="display:grid;gap:.6rem;width:min(580px,92vw)">
         <div class="row" style="gap:.6rem;justify-content:center">
@@ -254,7 +262,7 @@
           <div class="small">死亡数：<b id="sta-deaths">0</b></div>
         </div>
         <div class="card">
-          <div class="section-title">所持物</div>
+          <div class="sectionタイトル">所持物</div>
           <div class="small">ゴールド：<b id="bag-gold">0</b> G</div>
           <div class="small">ソウル：<b id="bag-soul">0</b>（累計消費：<b id="bag-soulspent">0</b>）</div>
           <div class="small">魔石：<b id="bag-gem">0</b></div>
@@ -367,7 +375,7 @@
 </footer>
 
 <script>
-const GAME_VERSION='0.9.5';
+const GAME_VERSION='0.9.8';
 const SAVE_KEY='tap_hns_save_v5', UI_MODE='ui_top_mode_v7', AUDIO_KEY='tap_hns_audio_v1', STAGE_KEY='tap_hns_stage_v1';
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 
@@ -390,7 +398,7 @@ const state={
   flavorIdx:0,
   invFilter:'all',
   themes:{},
-  stageNames:{},            // ← 30階ブロックごとの地名を保持
+  stageNames:{},            // 30階ブロックごとの地名を保持
   username:'', lastSeenVersion:GAME_VERSION
 };
 const prices={atk:10,hp:10,auto:25};
@@ -405,7 +413,6 @@ const ui={
   floorBadge:$('#floorBadge'), themeBadge:$('#themeBadge'), monsterFace:$('#monsterFace'), monsterHP:$('#monsterHP'), monsterHPText:$('#monsterHPText'), monsterName:$('#monsterName'), attackBtn:$('#attackBtn'),
   // Floor menu
   floorMenuBtn:$('#floorMenuBtn'), floorMenu:$('#floorMenu'), fmPrev:$('#fmPrev'), fmNext:$('#fmNext'), fmStay:$('#fmStay'), fmJumpInput:$('#fmJumpInput'), fmJumpGo:$('#fmJumpGo'), fmHint:$('#fmHint'),
-  nextBtn:$('#nextBtn'), fleeBtn:$('#fleeBtn'), floorHint:$('#floorHint'), stayCb:$('#stayCb'), jumpInput:$('#jumpInput'), jumpBtn:$('#jumpBtn'),
   tabUpg:$('#tab-upg'), tabInv:$('#tab-inv'), tabSta:$('#tab-sta'), tabAdv:$('#tab-adv'), tabSettings:$('#tab-settings'),
   costAtk:$('#costAtk'), costHP:$('#costHP'), costAuto:$('#costAuto'), buyAtk:$('#buyAtk'), buyHP:$('#buyHP'), buyAuto:$('#buyAuto'), autoRate:$('#autoRate'), upgGold:$('#upgGold'), lvAtk:$('#lvAtk'), lvHP:$('#lvHP'), lvAuto:$('#lvAuto'),
   countAtk:$('#countAtk'), countHP:$('#countHP'), countAuto:$('#countAuto'),
@@ -478,17 +485,17 @@ const _logBuf=[]; function renderLog(){ for(let i=0;i<3;i++){ const el=document.
 function pushLog(html){ _logBuf.unshift(html); if(_logBuf.length>3)_logBuf.length=3; renderLog(); }
 function toast(m){ const t=typeof m==='string'?m.replace(/</g,'&lt;').replace(/>/g,'&gt;'):String(m); pushLog(t); }
 
-// ===== Pools
+// ===== Pools (フル)
 const MONSTER_POOL=[
-  {name:'野うさぎ',emoji:'🐇',tags:['plains']}, {name:'野ネズミ',emoji:'🐭',tags:['plains']}, {name:'オオカミ',emoji:'🐺',tags:['plains','forest']}, {name:'蜂の群れ',emoji:'🐝',tags:['plains','forest']}, {name:'カエル',emoji:'🐸',tags:['plains']}, {name:'大イノシシ',emoji:'🐗',tags:['plains','forest']}, {name:'妖精',emoji:'🧚',tags:['plains','arcane']}, {name:'トレントの枝',emoji:'🌿',tags:['plains','forest']},
-  {name:'ゴブリン',emoji:'👹',tags:['forest','cave']}, {name:'森の精',emoji:'🌲',tags:['forest','plains']}, {name:'大コガネムシ',emoji:'🐞',tags:['forest','plains']}, {name:'クマ',emoji:'🐻',tags:['forest']},
-  {name:'サソリ',emoji:'🦂',tags:['desert']}, {name:'コブラ',emoji:'🐍',tags:['desert']}, {name:'ラクダバグ',emoji:'🐫',tags:['desert']}, {name:'砂の精',emoji:'🟨',tags:['desert','arcane']},
-  {name:'スケルトン',emoji:'💀',tags:['undead','cave']}, {name:'ゾンビ',emoji:'🧟',tags:['undead']}, {name:'ゴースト',emoji:'👻',tags:['undead','arcane']}, {name:'ミイラ',emoji:'🧻',tags:['desert','undead']},
-  {name:'コウモリ',emoji:'🦇',tags:['cave','undead']}, {name:'巨大グモ',emoji:'🕷️',tags:['cave']}, {name:'岩ゴーレム',emoji:'🪨',tags:['cave']}, {name:'目玉',emoji:'👁️',tags:['arcane','cave']},
-  {name:'魔導書',emoji:'📕',tags:['arcane']}, {name:'水晶体',emoji:'💠',tags:['arcane','cave']}, {name:'魔法使いの手',emoji:'🖐️',tags:['arcane']}
+  {name:'野うさぎ',emoji:'🐇',tags:['plains']},{name:'野ネズミ',emoji:'🐭',tags:['plains']},{name:'オオカミ',emoji:'🐺',tags:['plains','forest']},{name:'蜂の群れ',emoji:'🐝',tags:['plains','forest']},{name:'カエル',emoji:'🐸',tags:['plains']},{name:'大イノシシ',emoji:'🐗',tags:['plains','forest']},{name:'妖精',emoji:'🧚',tags:['plains','arcane']},{name:'トレントの枝',emoji:'🌿',tags:['plains','forest']},
+  {name:'ゴブリン',emoji:'👹',tags:['forest','cave']},{name:'森の精',emoji:'🌲',tags:['forest','plains']},{name:'大コガネムシ',emoji:'🐞',tags:['forest','plains']},{name:'クマ',emoji:'🐻',tags:['forest']},
+  {name:'サソリ',emoji:'🦂',tags:['desert']},{name:'コブラ',emoji:'🐍',tags:['desert']},{name:'ラクダバグ',emoji:'🐫',tags:['desert']},{name:'砂の精',emoji:'🟨',tags:['desert','arcane']},
+  {name:'スケルトン',emoji:'💀',tags:['undead','cave']},{name:'ゾンビ',emoji:'🧟',tags:['undead']},{name:'ゴースト',emoji:'👻',tags:['undead','arcane']},{name:'ミイラ',emoji:'🧻',tags:['desert','undead']},
+  {name:'コウモリ',emoji:'🦇',tags:['cave','undead']},{name:'巨大グモ',emoji:'🕷️',tags:['cave']},{name:'岩ゴーレム',emoji:'🪨',tags:['cave']},{name:'目玉',emoji:'👁️',tags:['arcane','cave']},
+  {name:'魔導書',emoji:'📕',tags:['arcane']},{name:'水晶体',emoji:'💠',tags:['arcane','cave']},{name:'魔法使いの手',emoji:'🖐️',tags:['arcane']}
 ];
 const BOSS_POOL=[
-  {name:'エント',emoji:'🌳',tags:['plains','forest']}, {name:'大猪王',emoji:'🐗',tags:['plains','forest']}, {name:'砂竜',emoji:'🐲',tags:['desert']}, {name:'スフィンクス',emoji:'🗿',tags:['desert','arcane']}, {name:'リッチ',emoji:'🪦',tags:['undead','arcane']}, {name:'デスナイト',emoji:'🗡️',tags:['undead']}, {name:'ケイブトロール',emoji:'👹',tags:['cave']}, {name:'巨岩王',emoji:'🪨',tags:['cave']}, {name:'アークメイジ',emoji:'🧙',tags:['arcane']}, {name:'虚ろな眼',emoji:'👁️',tags:['arcane','cave']}
+  {name:'エント',emoji:'🌳',tags:['plains','forest']},{name:'大猪王',emoji:'🐗',tags:['plains','forest']},{name:'砂竜',emoji:'🐲',tags:['desert']},{name:'スフィンクス',emoji:'🗿',tags:['desert','arcane']},{name:'リッチ',emoji:'🪦',tags:['undead','arcane']},{name:'デスナイト',emoji:'🗡️',tags:['undead']},{name:'ケイブトロール',emoji:'👹',tags:['cave']},{name:'巨岩王',emoji:'🪨',tags:['cave']},{name:'アークメイジ',emoji:'🧙',tags:['arcane']},{name:'虚ろな眼',emoji:'👁️',tags:['arcane','cave']}
 ];
 const ARCHBOSS_POOL=[
   {name:'黎明の守護者',emoji:'🌅',tags:['plains','coast']},
@@ -577,10 +584,7 @@ function updateFlavor(reason='timer'){
   ui.flavorText.textContent=msg; _flavorNextAt=Date.now()+20000;
 }
 
-// ===== GM reactions when multi-kill (overflow)
-function gmReact(kills){ const uname=(state.username||'君'); if(kills<=1) return ''; if(kills<=3) return choice([`ゲームマスター「いいね！一気に${kills}体、気持ちいいだろ？」`,`ゲームマスター「軽く流して${kills}体、上々だ。」`]); if(kills<=6) return choice([`ゲームマスター「見事！${kills}体を一瞬で薙いだ！」`,`ゲームマスター「やるじゃないか、${uname}。${kills}体だ。」`]); if(kills<=10) return `ゲームマスター「フフ…${kills}体か。面白くなってきた。」`; if(kills<=15) return `ゲームマスター「なんだその速度は！${kills}体…！」`; if(kills<=25) return `ゲームマスター「皆の視線がお前に集まっている。${kills}体だと…。」`; if(kills<=40) return `ゲームマスター「喝采が止まらない！${kills}体撃破！」`; if(kills<=70) return `ゲームマスター「もっと行け、${uname}！今ので${kills}体！」`; if(kills<=120) return `ゲームマスター「背筋が凍った…${kills}体を一息で…。」`; return `ゲームマスター「引くわ…${kills}体って、常識壊してる。」`; }
-
-// ===== WebAudio (SE)
+// ===== WebAudio (SE) — 同期・UI軽音
 let audioCtx=null; let _audioReady=false; const AudioStore={enabled:true, volume:0.8};
 function loadAudioSettings(){ try{ const raw=localStorage.getItem(AUDIO_KEY); if(raw){ const o=JSON.parse(raw); AudioStore.enabled=!!o.enabled; AudioStore.volume=typeof o.volume==='number'?o.volume:0.8; } }catch(e){} }
 function saveAudioSettings(){ try{ localStorage.setItem(AUDIO_KEY, JSON.stringify({enabled:AudioStore.enabled, volume:AudioStore.volume})); }catch(e){} }
@@ -595,8 +599,6 @@ function blipUp(){ tone(420,0.06,'square',0.25); tone(600,0.06,'square',0.22,0.0
 function sparkle(){ tone(800,0.05,'triangle',0.18); setTimeout(()=>tone(1200,0.06,'triangle',0.16),40); setTimeout(()=>tone(1600,0.07,'triangle',0.14),90); }
 function levelUp(){ tone(500,0.08,'sine',0.18); setTimeout(()=>tone(700,0.08,'sine',0.18),90); setTimeout(()=>tone(900,0.12,'sine',0.18),180); }
 function errorBeep(){ tone(200,0.12,'sawtooth',0.22); }
-function deathLow(){ tone(140,0.18,'square',0.25); setTimeout(()=>tone(90,0.22,'square',0.20),120); }
-function reviveRise(){ tone(300,0.08,'sine',0.15); setTimeout(()=>tone(520,0.08,'sine',0.15),90); setTimeout(()=>tone(760,0.10,'sine',0.15),180); }
 function bossTick(){ tone(900,0.04,'square',0.18); }
 function archOn(){ tone(300,0.08,'sawtooth',0.22); setTimeout(()=>tone(180,0.10,'sawtooth',0.24),70); }
 function archBreak(){ tone(760,0.06,'square',0.22); setTimeout(()=>tone(980,0.06,'square',0.20),50); setTimeout(()=>tone(1220,0.08,'square',0.18),100); }
@@ -612,8 +614,8 @@ const Sound={
     case 'buy': blipUp(); break;
     case 'drop': sparkle(); break;
     case 'error': errorBeep(); break;
-    case 'death': deathLow(); break;
-    case 'revive': reviveRise(); break;
+    case 'death': tone(140,0.18,'square',0.25); setTimeout(()=>tone(90,0.22,'square',0.20),120); break;
+    case 'revive': tone(300,0.08,'sine',0.15); setTimeout(()=>tone(520,0.08,'sine',0.15),90); setTimeout(()=>tone(760,0.10,'sine',0.15),180); break;
     case 'multi': for(let i=0;i<4;i++) setTimeout(()=>tone(420+i*60,0.03,'square',0.18), i*35); break;
     case 'bossTick': bossTick(); break;
     case 'archOn': archOn(); break;
@@ -664,10 +666,10 @@ ui.fmNext.addEventListener('click',goNext);
 ui.fmStay.addEventListener('change',e=>{ state.stay=!!e.target.checked; Sound.play('ui'); });
 ui.fmJumpGo.addEventListener('click',()=>{ const v=parseInt(ui.fmJumpInput.value||''); if(!v||v<1){ Sound.play('error'); return } jumpTo(v); });
 
-// ===== Combat =====
+// ===== Combat loop =====
 function beginEngage(){ if(!state.engaged){ state.engaged=true; if(state.monster.isBoss&&state.bossEndsAt===0){ const isArch=state.monster.type==='archboss'; state.bossEndsAt=Date.now()+(isArch?60000:30000); if(isArch){ state.monster.barrierNextAt=Date.now()+6000; state.monster.barrierEndsAt=0; } } } }
 function doSingleKillAndAdvance(){ const wasFloor=state.floor; const wasBoss=!!state.monster?.isBoss; const wasArch=state.monster?.type==='archboss'; awardKill(); if(state.stay){ spawnMonster(); } else { state.floor+=1; spawnMonster(); } if(wasBoss && wasFloor%30===0){ updateFlavor('boss30'); } if(wasArch){ ui.archBadge.hidden=true; } updateUI(); refreshFloorHints(); }
-function attack(){ if(!state.monster) return; if(state.playerHP<=0){ toast('…'); return; } beginEngage(); const m=state.monster; if(m.hp<=0) return; if(state.relicActive.kashiwa){ const atk=playerATK(); if(atk>m.hp && !(m.type==='archboss')){ let remaining=atk, kills=0, safety=0; while(remaining>=state.monster.hp && safety<300){ remaining-=state.monster.hp; doSingleKillAndAdvance(); kills++; safety++; if(state.floor>1e7) break; } if(kills>=2){ toast(`敵を${kills}体倒した！`); const gm=gmReact(kills); if(gm) toast(gm); Sound.play('multi'); } updateAttackBtn(); refreshFloorHints(); return; } }
+function attack(){ if(!state.monster) return; if(state.playerHP<=0){ toast('…'); return; } beginEngage(); const m=state.monster; if(m.hp<=0) return; if(state.relicActive.kashiwa){ const atk=playerATK(); if(atk>m.hp && !(m.type==='archboss')){ let remaining=atk, kills=0, safety=0; while(remaining>=state.monster.hp && safety<300){ remaining-=state.monster.hp; doSingleKillAndAdvance(); kills++; safety++; if(state.floor>1e7) break; } if(kills>=2){ toast(`敵を${kills}体倒した！`); const gm = (kills<=3)? 'ゲームマスター「いいね！」': kills<=6? 'ゲームマスター「見事！」':'ゲームマスター「やるじゃないか。」'; toast(gm); Sound.play('multi'); } updateAttackBtn(); refreshFloorHints(); return; } }
   const {dmg,isCrit}=clickDamage(); let dealt=Math.min(m.hp,dmg);
   if(m.type==='archboss' && m.barrierActive){ m.barrierHits++; const need=m.barrierNeed; ui.archBadge.textContent=`障壁 ${Math.min(m.barrierHits,need)}/${need}`; dealt=Math.ceil(dealt*0.2); if(m.barrierHits>=need){ m.barrierActive=false; m.barrierHits=0; m.barrierNextAt=Date.now()+8000; m.barrierEndsAt=0; ui.archBadge.hidden=true; toast('障壁が割れた！'); Sound.play('archBreak'); }
   }
@@ -691,23 +693,21 @@ function timersTick(){ let txt=[]; if(state.reviveAt>0){ const left=Math.max(0,s
 // ===== Save/Load/Export/Import
 function defaultDownloadName(){
   const uname=(state.username||'User');
-  // v0.9.5: remove date to avoid multiples
   const given=(ui.exportName?.value||'').trim();
-  const base = given || `save-${uname}`;
-  return base; // extension is appended by caller
+  return given || `save-${uname}`; // v0.9.5+ : no date to avoid multiples
 }
+function ensureJsonFilename(base){ return (/\.json$/i.test(base)? base : base+'.json'); }
 function save(manual=false){ try{ const data=JSON.stringify({state:{...state,bossEndsAt:state.bossEndsAt>0?Date.now()+Math.max(0,state.bossEndsAt-Date.now()):0,reviveAt:state.reviveAt>0?Date.now()+Math.max(0,state.reviveAt-Date.now()):0},prices}); localStorage.setItem(SAVE_KEY,data); if(manual) toast('保存しました'); }catch(e){ console.warn(e); }}
-function load(manual=false){ try{ const raw=localStorage.getItem(SAVE_KEY); if(!raw){ if(manual) toast('ローカルにセーブが見つかりません'); return false } const o=JSON.parse(raw); Object.assign(state,o.state||{}); Object.assign(prices,o.prices||{}); state.upg=state.upg||{atk:0,hp:0,auto:0}; state.unlocks=state.unlocks||{kashiwa:false, strongsword:false}; if(state.unlocks.strongsword===undefined) state.unlocks.strongsword=false; state.relicActive=state.relicActive||{kashiwa:false, strongsword:false}; if(state.relicActive.strongsword===undefined) state.relicActive.strongsword=false; state.soulUp=state.soulUp||{atk:0,hp:0,gold:0}; if(state.soulsSpent===undefined) state.soulsSpent=0; state.themes=state.themes||{}; state.stageNames=state.stageNames||{}; state.username=state.username||''; state.lastSeenVersion=state.lastSeenVersion||GAME_VERSION; state.playerHP=clamp(state.playerHP,0,recalcMaxHP()); ui.autoEquip&&(ui.autoEquip.checked=!!state.autoEquip); ui.stayCb&&(ui.stayCb.checked=!!state.stay); // load persistent stage names
-  try{ const st=localStorage.getItem(STAGE_KEY); if(st){ const obj=JSON.parse(st); if(obj && typeof obj==='object') state.stageNames=obj; } }catch(e){}
+function load(manual=false){ try{ const raw=localStorage.getItem(SAVE_KEY); if(!raw){ if(manual) toast('ローカルにセーブが見つかりません'); return false } const o=JSON.parse(raw); Object.assign(state,o.state||{}); Object.assign(prices,o.prices||{}); state.upg=state.upg||{atk:0,hp:0,auto:0}; state.unlocks=state.unlocks||{kashiwa:false, strongsword:false}; if(state.unlocks.strongsword===undefined) state.unlocks.strongsword=false; state.relicActive=state.relicActive||{kashiwa:false, strongsword:false}; if(state.relicActive.strongsword===undefined) state.relicActive.strongsword=false; state.soulUp=state.soulUp||{atk:0,hp:0,gold:0}; if(state.soulsSpent===undefined) state.soulsSpent=0; state.themes=state.themes||{}; state.stageNames=state.stageNames||{}; state.username=state.username||''; state.lastSeenVersion=state.lastSeenVersion||GAME_VERSION; state.playerHP=clamp(state.playerHP,0,recalcMaxHP()); ui.autoEquip&&(ui.autoEquip.checked=!!state.autoEquip); ui.stayCb&&(ui.stayCb.checked=!!state.stay); try{ const st=localStorage.getItem(STAGE_KEY); if(st){ const obj=JSON.parse(st); if(obj && typeof obj==='object') state.stageNames=obj; } }catch(e){}
   renderInventory(); updateUI(); if(manual) toast('読込しました'); return true }catch(e){ console.warn(e); if(manual) toast('読込に失敗しました'); return false } }
 function importSaveFromText(raw){ try{ JSON.parse(raw); localStorage.setItem(SAVE_KEY, raw); return load(false); }catch(e){ toast('JSONエラー'); return false } }
 
 // ===== Inventory rendering
-function rarityCls(r){return `rarity-${(r||'Common')}`} function colored(name,rarity){return `<span class=\"${rarityCls(rarity)} rarity-Label\">${name}</span>`}
+function rarityCls(r){return `rarity-${(r||'Common')}`} function colored(name,rarity){return `<span class="${rarityCls(rarity)} rarity-Label">${name}</span>`}
 function renderEquipped(){ const w=state.eq.weapon,a=state.eq.armor,r=state.eq.ring; ui.eqWeapon.innerHTML=w?colored(w.name,w.rarity):'なし'; ui.eqArmor.innerHTML=a?colored(a.name,a.rarity):'なし'; ui.eqRing.innerHTML=r?colored(r.name,r.rarity):'なし'; }
 function renderInventory(){ const box=ui.invList; if(!box) return; box.innerHTML=''; const ft=state.invFilter||'all'; const filtered=state.inv.filter(it=>ft==='all'?true:it.slot===ft); if(ui.invFilterInfo){ const total=state.inv.length,cnt=filtered.length; const labelMap={all:'すべて',weapon:'武器',armor:'鎧',ring:'指輪'}; ui.invFilterInfo.textContent=`${labelMap[ft]}：${cnt} 件 / 全 ${total} 件`; }
-  const tools=document.createElement('div'); tools.className='row'; tools.innerHTML=`<div class=\"small\">一括売却：</div><div class=\"wrap\" style=\"gap:.4rem\"><button class=\"btn mini bulk-sell\" data-r=\"Common\">コモン</button><button class=\"btn mini bulk-sell\" data-r=\"Uncommon\">アンコモン</button><button class=\"btn mini bulk-sell\" data-r=\"Rare\">レア</button><button class=\"btn mini bulk-sell\" data-r=\"Epic\">エピック</button><button class=\"btn mini bulk-sell\" data-r=\"Legendary\">レジェンド</button></div>`; box.appendChild(tools); tools.querySelectorAll('.bulk-sell').forEach(btn=>{ btn.addEventListener('click',()=>{ const rar=btn.getAttribute('data-r'); const sellable=state.inv.filter(it=>it.rarity===rar); if(sellable.length===0){ toast(`${rar} は所持なし`); Sound.play('error'); return } const total=sellable.reduce((s,it)=>s+Math.floor(it.value),0); if(!confirm(`${rar} を ${sellable.length}件、合計 ${total}G で売却しますか？`)) return; state.inv=state.inv.filter(it=>it.rarity!==rar); state.gold+=total; renderInventory(); updateUI(); toast(`+${total}G（${rar} x${sellable.length}）`); Sound.play('buy'); }); });
-  for(const it of filtered){ const div=document.createElement('div'); div.className='card'; div.innerHTML=`<div><b class=\"${rarityCls(it.rarity)}\">${it.name}</b></div><div class=\"small\">${renderItemText(it)}</div>`; const row=document.createElement('div'); row.className='row'; const e=document.createElement('button'); e.className='btn'; e.textContent='装備'; e.onclick=()=>{ state.eq[it.slot]=it; toast(`装備：${renderItemText(it)}`); Sound.play('buy'); updateUI(); }; const s=document.createElement('button'); s.className='btn gold'; s.textContent=`売却 (+${Math.floor(it.value)}G)`; s.onclick=()=>{ state.gold+=Math.floor(it.value); state.inv=state.inv.filter(x=>x!==it); renderInventory(); updateUI(); Sound.play('buy'); }; row.appendChild(e); row.appendChild(s); div.appendChild(row); box.appendChild(div); }
+  const tools=document.createElement('div'); tools.className='row'; tools.innerHTML=`<div class="small">一括売却：</div><div class="wrap" style="gap:.4rem"><button class="btn mini bulk-sell" data-r="Common">コモン</button><button class="btn mini bulk-sell" data-r="Uncommon">アンコモン</button><button class="btn mini bulk-sell" data-r="Rare">レア</button><button class="btn mini bulk-sell" data-r="Epic">エピック</button><button class="btn mini bulk-sell" data-r="Legendary">レジェンド</button></div>`; box.appendChild(tools); tools.querySelectorAll('.bulk-sell').forEach(btn=>{ btn.addEventListener('click',()=>{ const rar=btn.getAttribute('data-r'); const sellable=state.inv.filter(it=>it.rarity===rar); if(sellable.length===0){ toast(`${rar} は所持なし`); Sound.play('error'); return } const total=sellable.reduce((s,it)=>s+Math.floor(it.value),0); if(!confirm(`${rar} を ${sellable.length}件、合計 ${total}G で売却しますか？`)) return; state.inv=state.inv.filter(it=>it.rarity!==rar); state.gold+=total; renderInventory(); updateUI(); toast(`+${total}G（${rar} x${sellable.length}）`); Sound.play('buy'); }); });
+  for(const it of filtered){ const div=document.createElement('div'); div.className='card'; div.innerHTML=`<div><b class="${rarityCls(it.rarity)}">${it.name}</b></div><div class="small">${renderItemText(it)}</div>`; const row=document.createElement('div'); row.className='row'; const e=document.createElement('button'); e.className='btn'; e.textContent='装備'; e.onclick=()=>{ state.eq[it.slot]=it; toast(`装備：${renderItemText(it)}`); Sound.play('buy'); updateUI(); }; const s=document.createElement('button'); s.className='btn gold'; s.textContent=`売却 (+${Math.floor(it.value)}G)`; s.onclick=()=>{ state.gold+=Math.floor(it.value); state.inv=state.inv.filter(x=>x!==it); renderInventory(); updateUI(); Sound.play('buy'); }; row.appendChild(e); row.appendChild(s); div.appendChild(row); box.appendChild(div); }
 }
 
 // ===== Footer nav & subtabs
@@ -716,25 +716,34 @@ function switchMainTab(tabId){ [ui.tabUpg,ui.tabInv,ui.tabSta,ui.tabAdv,ui.tabSe
 fTabs.forEach(btn=>btn.addEventListener('click',()=>switchMainTab(btn.getAttribute('data-tab'))));
 ui.advTabs.forEach(btn=>{ btn.addEventListener('click',()=>{ ui.advTabs.forEach(x=>x.classList.remove('active')); btn.classList.add('active'); const id=btn.getAttribute('data-advtab'); ui.advAsc.setAttribute('hidden',''); ui.advRelic.setAttribute('hidden',''); document.getElementById(id).removeAttribute('hidden'); Sound.play('ui'); }); });
 
-// ===== Buttons & Inputs
+// ===== Buttons & Inputs =====
 let _holding=false,_t=0,_saw=false; function onPD(e){ e.preventDefault(); _saw=true; _t=Date.now(); if(_holding) return; _holding=true; attack(); } function onPU(){ _holding=false }
 function bindInput(el){ if(!el) return; if(window.PointerEvent){ el.addEventListener('pointerdown',onPD,{passive:false}); el.addEventListener('pointerup',onPU); el.addEventListener('pointercancel',onPU); el.addEventListener('pointerleave',onPU); } else { el.addEventListener('click',()=>{ if(_saw && Date.now()-_t<200) return; attack(); }); } }
 bindInput($('#attackBtn')); bindInput($('#monster'));
 document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
 
+// ===== Upgrades (Fix) =====
+function tryBuy(costKey, applyFn){ const price=prices[costKey]; if(state.gold<price){ toast('Gが足りない'); Sound.play('error'); return false } state.gold-=price; prices[costKey]=Math.ceil(price*1.18+1); applyFn(); updateUI(); save(false); Sound.play('buy'); return true }
+ui.buyAtk&&ui.buyAtk.addEventListener('click',()=>tryBuy('atk',()=>{ state.upg.atk++; state.baseATK++; toast('ATK +1'); }));
+ui.buyHP&&ui.buyHP.addEventListener('click',()=>tryBuy('hp',()=>{ state.upg.hp++; state.baseHP+=5; state.playerHP=recalcMaxHP(); toast('最大HP +5'); }));
+ui.buyAuto&&ui.buyAuto.addEventListener('click',()=>tryBuy('auto',()=>{ state.upg.auto++; state.autoTap=(state.autoTap||0)+0.2; toast('自動タップ +0.2/s'); }));
+$$('#tab-upg .btn.mini').forEach(btn=>btn.addEventListener('click',()=>{ const [key,mode]=(btn.getAttribute('data-bulk')||'').split('-'); let n=mode==='10'?10:mode==='100'?100:mode==='max'?1e6:1; for(let i=0;i<n;i++){ const ok= key==='atk'? tryBuy('atk',()=>{state.upg.atk++; state.baseATK++;}) : key==='hp'? tryBuy('hp',()=>{state.upg.hp++; state.baseHP+=5; state.playerHP=recalcMaxHP();}) : tryBuy('auto',()=>{state.upg.auto++; state.autoTap=(state.autoTap||0)+0.2;}); if(!ok) break; } }));
+
 // ===== Settings: download / import / wipe =====
-ui.downloadBtn&&ui.downloadBtn.addEventListener('click',()=>{ const name=(defaultDownloadName())+'.json'; const blob=new Blob([localStorage.getItem(SAVE_KEY)||'{}'],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); Sound.play('ui'); });
+ui.downloadBtn&&ui.downloadBtn.addEventListener('click',()=>{ save(false); const name=ensureJsonFilename(defaultDownloadName()); const blob=new Blob([localStorage.getItem(SAVE_KEY)||'{}'],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); Sound.play('ui'); });
 ui.importFileBtn&&ui.importFileBtn.addEventListener('click',()=>{ openFileInput(ui.fileOpenSettings); Sound.play('ui'); });
 function openFileInput(el){ el.value=''; el.click(); }
 function readFileAsText(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsText(file,'utf-8'); }); }
 ui.fileOpenSettings&&ui.fileOpenSettings.addEventListener('change',async e=>{ const f=e.target.files?.[0]; if(!f) return; try{ const txt=await readFileAsText(f); if(importSaveFromText(txt)){ toast('読み込みOK'); updateUI(); renderInventory(); Sound.play('buy'); } }catch(_){ toast('読込エラー'); Sound.play('error'); } });
-ui.wipeBtn&&ui.wipeBtn.addEventListener('click',()=>{
-  const msg='全データを削除し、画面を更新します。\n\n※削除前に必ず「ダウンロード」でバックアップ保存してください。\n\nOKで削除/更新します。';
-  if(!confirm(msg)) return; localStorage.removeItem(SAVE_KEY); localStorage.removeItem(STAGE_KEY); location.reload();
-});
+ui.wipeBtn&&ui.wipeBtn.addEventListener('click',()=>{ const msg='全データを削除し、画面を更新します。\n\n※削除前に必ず「ダウンロード」でバックアップ保存してください。\n\nOKで削除/更新します。'; if(!confirm(msg)) return; localStorage.removeItem(SAVE_KEY); localStorage.removeItem(STAGE_KEY); location.reload(); });
 ui.nameSave&&ui.nameSave.addEventListener('click',()=>{ const nm=(ui.nameEdit.value||'').trim(); if(!nm){ toast('名前を入力'); Sound.play('error'); return } state.username=nm; save(false); toast('OK'); Sound.play('buy'); });
+ui.codeBtn&&ui.codeBtn.addEventListener('click',()=>{ const code=(ui.codeInput.value||'').trim(); if(!code){ ui.codeStatus.textContent='コードを入力'; Sound.play('error'); return } if(code==='kashiwa060925'){ if(state.unlocks.kashiwa){ ui.codeStatus.textContent='使用済み'; Sound.play('error'); return } state.unlocks.kashiwa=true; ui.codeStatus.textContent='OK：柏の加護を入手'; updateUI(); save(false); Sound.play('buy'); return; } if(code==='kashiwa77'){ if(state.unlocks.strongsword){ ui.codeStatus.textContent='使用済み'; Sound.play('error'); return } state.unlocks.strongsword=true; ui.codeStatus.textContent='OK：ツヨスギテ=クサハエルを入手'; updateUI(); save(false); Sound.play('buy'); return; } ui.codeStatus.textContent='NG'; Sound.play('error'); });
 
-// ===== Start overlay (robust) + unlock audio
+// ===== Header collapse & flavor bar =====
+function applyCollapsed(col){ if(col){ ui.topCollapsed.removeAttribute('hidden'); ui.topExpanded.setAttribute('hidden',''); ui.toggleInfo.setAttribute('aria-expanded','false'); ui.toggleInfo.textContent='▼ 詳細'; ui.flavorBar && (ui.flavorBar.hidden=false); } else { ui.topCollapsed.setAttribute('hidden',''); ui.topExpanded.removeAttribute('hidden'); ui.toggleInfo.setAttribute('aria-expanded','true'); ui.toggleInfo.textContent='▲ 閉じる'; ui.flavorBar && (ui.flavorBar.hidden=true); } localStorage.setItem(UI_MODE,col?'1':'0'); if(ui.flavorBar && ui.flavorBar.hidden===false && !_flavorNextAt){ updateFlavor('timer'); } }
+ui.toggleInfo.addEventListener('click',()=>{ const col=ui.toggleInfo.getAttribute('aria-expanded')==='true'; applyCollapsed(col) });
+
+// ===== Start overlay + audio unlock =====
 function hasSave(){ try{ return !!localStorage.getItem(SAVE_KEY) }catch(e){ return false } }
 function setPrimaryButton(){ if(hasSave()){ ui.btnPrimary.setAttribute('data-mode','local'); ui.btnPrimary.textContent='コンティニュー'; } else { ui.btnPrimary.setAttribute('data-mode','new'); ui.btnPrimary.textContent='ニューゲーム'; } }
 function beginGame(uname){ if(!uname) uname='旅人'; state.username=uname; state.playerHP=recalcMaxHP(); spawnMonster(); renderInventory(); updateUI(); save(false); ui.startOverlay.hidden=true; startLoop(); Sound.play('ui'); }
@@ -746,10 +755,11 @@ ui.fileOpenStart.addEventListener('change',async e=>{ const f=e.target.files?.[0
 ui.btnBegin.addEventListener('click',()=>{ const nm=(ui.startName.value||'').trim(); beginGame(nm); });
 ui.startName.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); ui.btnBegin.click(); } });
 
-// ===== Loop & UI refresh
+// ===== Loop & UI refresh =====
 let last=performance.now(), _loopStarted=false; function startLoop(){ if(_loopStarted) return; _loopStarted=true; requestAnimationFrame(loop); }
 function loop(now){ const dt=Math.min(0.1,(now-last)/1000); last=now; autoTapTick(dt); enemyTick(dt); regenTick(dt); timersTick(dt); updateUI(); requestAnimationFrame(loop) }
-function updateUI(){ ui.c_gold.textContent=Math.floor(state.gold); ui.c_level.textContent=state.level; ui.c_exp.textContent=`${state.exp}/${state.expToNext}`; ui.x_floor.textContent=state.floor; ui.x_level.textContent=state.level; ui.x_exp.textContent=`${state.exp}/${state.expToNext}`; ui.x_atk.textContent=playerATK(); ui.x_gold.textContent=Math.floor(state.gold); ui.x_souls.textContent=state.souls; ui.x_crit.textContent=`${Math.floor(playerCRIT())}%`; const mx=recalcMaxHP(); const pct=clamp(state.playerHP/mx*100,0,100); ui.x_hpbar.style.width=`${pct}%`; ui.x_hptxt.textContent=`${Math.floor(state.playerHP)}/${mx}`; ui.upgGold.textContent=Math.floor(state.gold); ui.lvAtk.textContent=state.upg.atk; ui.lvHP.textContent=state.upg.hp; ui.lvAuto.textContent=state.upg.auto; ui.countAtk.textContent=`購入回数：${state.upg.atk}`; ui.countHP.textContent=`購入回数：${state.upg.hp}`; ui.countAuto.textContent=`購入回数：${state.upg.auto}`; ui.autoRate.textContent=(state.autoTap||0).toFixed(1); ui.costAtk.textContent=prices.atk; ui.costHP.textContent=prices.hp; ui.costAuto.textContent=prices.auto; ui.floorBadge && (ui.floorBadge.innerHTML=`階層 ${state.floor} <span class=\"theme-badge\" id=\"themeBadge\">${themeLabel(state.themes[currentBlockIdx()]||ensureThemeForBlock(currentBlockIdx()))}</span>`); ui.themeBadge=document.getElementById('themeBadge'); const gain=Math.floor(state.maxFloor/30); ui.soulGain && (ui.soulGain.textContent=gain); if(ui.flavorBar && ui.flavorBar.hidden===false && !_flavorNextAt){ updateFlavor('timer'); }
+function updateUI(){ ui.c_gold.textContent=Math.floor(state.gold); ui.c_level.textContent=state.level; ui.c_exp.textContent=`${state.exp}/${state.expToNext}`; ui.x_floor.textContent=state.floor; ui.x_level.textContent=state.level; ui.x_exp.textContent=`${state.exp}/${state.expToNext}`; ui.x_atk.textContent=playerATK(); ui.x_gold.textContent=Math.floor(state.gold); ui.x_souls.textContent=state.souls; ui.x_crit.textContent=`${Math.floor(playerCRIT())}%`; const mx=recalcMaxHP(); const pct=clamp(state.playerHP/mx*100,0,100); ui.x_hpbar.style.width=`${pct}%`; ui.x_hptxt.textContent=`${Math.floor(state.playerHP)}/${mx}`; ui.upgGold.textContent=Math.floor(state.gold); ui.lvAtk.textContent=state.upg.atk; ui.lvHP.textContent=state.upg.hp; ui.lvAuto.textContent=state.upg.auto; ui.countAtk.textContent=`購入回数：${state.upg.atk}`; ui.countHP.textContent=`購入回数：${state.upg.hp}`; ui.countAuto.textContent=`購入回数：${state.upg.auto}`; ui.autoRate.textContent=(state.autoTap||0).toFixed(1); ui.costAtk.textContent=prices.atk; ui.costHP.textContent=prices.hp; ui.costAuto.textContent=prices.auto; if(ui.staAtk){ ui.staAtk.textContent=playerATK(); ui.staHP.textContent=recalcMaxHP(); ui.staDef.textContent=playerDEF(); ui.staCrit.textContent=`${Math.floor(playerCRIT())}%`; ui.staGoldB.textContent=`${Math.floor(goldB())}%`; ui.staSatk.textContent=(state.soulUp.atk*2).toFixed(0); ui.staShp.textContent=(state.soulUp.hp*2).toFixed(0); ui.staSgold.textContent=(state.soulUp.gold*2).toFixed(0); ui.staMaxFloor.textContent=state.maxFloor; ui.staKills.textContent=state.kills; ui.staDeaths.textContent=state.deaths; ui.staAutoTap.textContent=(state.autoTap||0).toFixed(1); ui.staItemDrop.textContent=`${(getItemDrop()*100).toFixed(1)}%`; ui.staMimic.textContent='3.00%'; ui.staSuperMimic.textContent='1.20%'; ui.staStoneDrop.textContent='5%'; ui.staStoneAmt.textContent=Math.floor(state.floor/10); }
+  ui.bagGold.textContent=Math.floor(state.gold); ui.bagSoul.textContent=state.souls; ui.bagSoulSpent.textContent=state.soulsSpent; ui.bagGem.textContent=state.magicStones; ui.bagPeb.textContent=state.pebbles; ui.bagEq.textContent=state.inv.length; ui.floorBadge && (ui.floorBadge.innerHTML=`階層 ${state.floor} <span class=\"theme-badge\" id=\"themeBadge\">${themeLabel(state.themes[currentBlockIdx()]||ensureThemeForBlock(currentBlockIdx()))}</span>`); ui.themeBadge=document.getElementById('themeBadge'); const gain=Math.floor(state.maxFloor/30); ui.soulGain && (ui.soulGain.textContent=gain); if(ui.flavorBar && ui.flavorBar.hidden===false && !_flavorNextAt){ updateFlavor('timer'); }
 }
 
 const MIMIC_P=0.03, SUPER_MIMIC_P=0.012; function getItemDrop(){ const luck=(state.eq.ring?.goldB??0)*0.2; return 0.20 + luck/100 }
@@ -758,7 +768,7 @@ const MIMIC_P=0.03, SUPER_MIMIC_P=0.012; function getItemDrop(){ const luck=(sta
 (function init(){
   switchMainTab('tab-upg');
   applyThemeSkin(ensureThemeForBlock(currentBlockIdx()));
-  const saved=localStorage.getItem(UI_MODE); ui.toggleInfo && (ui.toggleInfo.getAttribute('aria-expanded')==='true'?null: (ui.topCollapsed.removeAttribute('hidden'), ui.topExpanded.setAttribute('hidden',''), ui.flavorBar.hidden=false));
+  const saved=localStorage.getItem(UI_MODE); applyCollapsed(saved!=='0');
   ui.verText.textContent=GAME_VERSION; const exist=hasSave(); ui.saveDetect.textContent=exist?'OK':'—'; setPrimaryButton();
   try{ const raw=localStorage.getItem(SAVE_KEY); if(raw){ const o=JSON.parse(raw); if(o?.state?.username) state.username=o.state.username; } const st=localStorage.getItem(STAGE_KEY); if(st){ const obj=JSON.parse(st); if(obj && typeof obj==='object') state.stageNames=obj; } }catch(e){}
   window.addEventListener('beforeunload',()=>save(false));
