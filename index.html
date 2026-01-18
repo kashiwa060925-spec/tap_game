@@ -2,126 +2,82 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
-<!-- ★ スマホ向け：ズーム抑制＆タップ快適化 -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>ハクスラ・タップRPG（HTML一枚／タップ専用）</title>
 <style>
   :root{
-    --c-bg:#0f1220;
-    --c-panel:#171a2b;
-    --c-accent:#7cd2ff;
-    --c-accent2:#9eff7c;
-    --c-text:#e8eefc;
-    --c-sub:#aab6d6;
-    --c-danger:#ff6b6b;
-    --c-gold:#ffd76a;
-    --c-rare:#58c7ff;
-    --c-epic:#c58cff;
-    --c-legend:#ffb36a;
-    --c-hp:#35d07f;
+    --c-bg:#0f1220; --c-panel:#171a2b; --c-accent:#7cd2ff; --c-accent2:#9eff7c;
+    --c-text:#e8eefc; --c-sub:#aab6d6; --c-danger:#ff6b6b; --c-gold:#ffd76a;
   }
   *{box-sizing:border-box}
-  html, body {
-    height:100%;
-    -webkit-text-size-adjust: 100%;
-  }
-  body{
-    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-    background:linear-gradient(180deg,#0d1120,#0b1021 50%,#0e0f1a);
-    color:var(--c-text);
-    /* ★ タップのハイライトを消す（iOS/Android） */
-    -webkit-tap-highlight-color: transparent;
-  }
-  header{
-    position:sticky; top:0; z-index:3;
-    background:#0d1120cc; backdrop-filter: blur(6px);
-    border-bottom:1px solid #1f2440; padding:.6rem .8rem;
-  }
-  .topbar{display:flex; gap:.8rem; flex-wrap:wrap; align-items:center; justify-content:space-between}
-  .wrap{display:flex; gap:.8rem; align-items:center; flex-wrap:wrap}
-  .pill{
-    background:var(--c-panel); border:1px solid #232742; border-radius:12px;
-    padding:.5rem .7rem; font-size:.95rem; color:var(--c-sub)
-  }
-  .hp-ui{display:flex; align-items:center; gap:.4rem}
-  .bar{width:180px; height:12px; border-radius:8px; background:#101425; border:1px solid #283055; overflow:hidden}
-  .bar>span{display:block; height:100%; background:linear-gradient(90deg,#2ddf7f,#67e3a3); width:100%}
-  .small{font-size:.9rem; color:var(--c-sub)}
-  main{max-width:1200px; margin:0 auto; padding:1rem}
-  .layout{display:grid; grid-template-columns:1.2fr .9fr; gap:1rem}
-  @media (max-width:900px){.layout{grid-template-columns:1fr}}
+  html,body{height:100%;-webkit-text-size-adjust:100%}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#0d1120,#0b1021 50%,#0e0f1a);color:var(--c-text);-webkit-tap-highlight-color:transparent}
+  /* hidden を確実に隠す */
+  [hidden]{display:none !important}
 
-  .panel{
-    background:var(--c-panel); border:1px solid #222647; border-radius:14px; padding:1rem;
-    box-shadow:0 8px 24px #00000045, inset 0 1px #2b3159;
-  }
-  .monster{
-    display:grid; grid-template-rows:auto auto auto; gap:.6rem; justify-items:center; text-align:center;
-    padding:1rem; border-radius:12px; background:radial-gradient(80% 80% at 50% 30%, #141937, #101635);
-    border:1px solid #202554; cursor:pointer; user-select:none;
-    /* ★ スマホの300ms遅延を防止 */
-    touch-action: manipulation;
-  }
-  /* ★ フォーカス装飾は無効（タップ専用のため） */
-  .monster:focus{outline: none; box-shadow:none}
-  .monster-emoji{font-size:76px; line-height:1}
-  .hpbar{width:100%; height:18px; background:#0c1026; border:1px solid #2a2f5a; border-radius:10px; overflow:hidden}
-  .hpbar>div{height:100%; background:linear-gradient(90deg,#ff6b6b,#ff9f6b); width:100%; transition:width .12s ease}
-  .monster-info{display:flex; justify-content:space-between; width:100%; color:var(--c-sub); font-weight:600}
-  .actions{display:flex; gap:.8rem; flex-wrap:wrap; justify-content:center}
-  .btn{
-    background:#0f1536; color:#cfe0ff; border:1px solid #2a2f66; padding:.8rem 1.1rem; border-radius:12px; cursor:pointer;
-    /* ★ タップ最適化 */
-    touch-action: manipulation;
-    min-width: 44px; min-height: 44px;
-  }
+  header{position:sticky;top:0;z-index:3;background:#0d1120cc;backdrop-filter:blur(6px);border-bottom:1px solid #1f2440;padding:.6rem .8rem}
+  .topbar{display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:center}
+  .wrap{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+  .pill{background:var(--c-panel);border:1px solid #232742;border-radius:12px;padding:.45rem .6rem;font-size:.92rem;color:var(--c-sub)}
+  .bar{width:160px;height:12px;border-radius:8px;background:#101425;border:1px solid #283055;overflow:hidden}
+  .bar>span{display:block;height:100%;background:linear-gradient(90deg,#2ddf7f,#67e3a3);width:100%}
+  .small{font-size:.85rem;color:var(--c-sub)}
+  .toggle{justify-self:end;background:#121639;border:1px solid #2a2f66;color:#c9d6ff;padding:.45rem .6rem;border-radius:10px;touch-action:manipulation}
+  .toggle[aria-expanded='true']{background:#1a2053}
+
+  main{max-width:1200px;margin:0 auto;padding:1rem}
+  .layout{display:grid;grid-template-columns:1.2fr .9fr;gap:1rem}
+  @media (max-width:900px){.layout{grid-template-columns:1fr}}
+  .panel{background:#171a2b;border:1px solid #222647;border-radius:14px;padding:1rem;box-shadow:0 8px 24px #00000045,inset 0 1px #2b3159}
+  .monster{display:grid;gap:.6rem;justify-items:center;text-align:center;padding:1rem;border-radius:12px;background:radial-gradient(80% 80% at 50% 30%, #141937, #101635);border:1px solid #202554;cursor:pointer;user-select:none;touch-action:manipulation}
+  .monster-emoji{font-size:76px;line-height:1}
+  .hpbar{width:100%;height:18px;background:#0c1026;border:1px solid #2a2f5a;border-radius:10px;overflow:hidden}
+  .hpbar>div{height:100%;background:linear-gradient(90deg,#ff6b6b,#ff9f6b);width:100%;transition:width .12s ease}
+  .monster-info{display:flex;justify-content:space-between;width:100%;color:#aab6d6;font-weight:600}
+  .actions{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
+  .btn{background:#0f1536;color:#cfe0ff;border:1px solid #2a2f66;padding:.8rem 1.1rem;border-radius:12px;cursor:pointer;touch-action:manipulation;min-width:44px;min-height:44px}
   .btn:hover{background:#121a43}
-  .btn.gold{border-color:#6e5a25; background:#221b08; color:#ffd76a}
-  .btn.danger{border-color:#6b2833; background:#2a0d14; color:#ffb0b0}
-  .grid{display:grid; gap:.6rem}
-  .tabs{display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.6rem}
-  .tab{background:#121639; border:1px solid #2a2f66; padding:.7rem 1rem; border-radius:12px; cursor:pointer; color:#c9d6ff; touch-action: manipulation;}
-  .tab.active{background:#1a2053; outline:2px solid #6888ff66}
-  .inv-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:.6rem}
-  .card{
-    background:#0f1433; border:1px solid #2a2f66; border-radius:10px; padding:.7rem; display:grid; gap:.35rem
-  }
-  .rar-Common{color:#e0e6ff}
-  .rar-Uncommon{color:#9eff7c}
-  .rar-Rare{color:#58c7ff}
-  .rar-Epic{color:#c58cff}
-  .rar-Legendary{color:#ffb36a}
-  .row{display:flex; justify-content:space-between; gap:.6rem; align-items:center; flex-wrap:wrap}
-  .muted{color:var(--c-sub)}
-  .warn{color:var(--c-danger)}
-  .gold{color:var(--c-gold)}
-  .footnote{margin-top:.8rem; color:#98a2c9; font-size:.9rem}
+  .btn.gold{border-color:#6e5a25;background:#221b08;color:#ffd76a}
+  .btn.danger{border-color:#6b2833;background:#2a0d14;color:#ffb0b0}
+  .btn:disabled{opacity:.5;filter:grayscale(40%);cursor:not-allowed}
+  .grid{display:grid;gap:.6rem}
+  .tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem}
+  .tab{background:#121639;border:1px solid #2a2f66;padding:.7rem 1rem;border-radius:12px;cursor:pointer;color:#c9d6ff;touch-action:manipulation}
+  .tab.active{background:#1a2053;outline:2px solid #6888ff66}
+  .inv-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.6rem}
+  .card{background:#0f1433;border:1px solid #2a2f66;border-radius:10px;padding:.7rem;display:grid;gap:.35rem}
+  .row{display:flex;justify-content:space-between;gap:.6rem;align-items:center;flex-wrap:wrap}
+  .rar-Common{color:#e0e6ff}.rar-Uncommon{color:#9eff7c}.rar-Rare{color:#58c7ff}.rar-Epic{color:#c58cff}.rar-Legendary{color:#ffb36a}
+  .muted{color:#aab6d6}.warn{color:#ff6b6b}.gold{color:#ffd76a}
+  .footnote{margin-top:.8rem;color:#98a2c9;font-size:.9rem}
 </style>
 </head>
 <body>
 <header>
   <div class="topbar">
-    <div class="wrap">
-      <div class="pill">階層 <b id="floor">1</b> <span id="bossTimer" class="small"></span></div>
-      <div class="pill">所持 <span class="gold"><b id="gold">0</b> G</span></div>
-      <div class="pill">Lv <b id="level">1</b> / EXP <b id="exp">0</b></div>
-      <div class="pill">
-        HP
-        <span class="bar" aria-label="プレイヤーHP"><span id="hpbar" style="width:100%"></span></span>
-        <span class="small" id="hptext">10/10</span>
-      </div>
-      <div class="pill">ATK <b id="atk">1</b> / クリ率 <b id="crit">5%</b></div>
-      <div class="pill">ソウル <b id="souls">0</b></div>
+    <!-- プライマリ（常時表示）：階層 / HP / ATK / Lv -->
+    <div class="wrap" id="top-primary">
+      <div class="pill">階層 <b id="floor">1</b></div>
+      <div class="pill">HP <span class="bar" aria-label="プレイヤーHP"><span id="hpbar" style="width:100%"></span></span> <span class="small" id="hptext">10/10</span></div>
+      <div class="pill">ATK <b id="atk">1</b></div>
+      <div class="pill">Lv <b id="level">1</b></div>
     </div>
-    <!-- ★ キーボード案内は削除 -->
+    <!-- 折りたたみトグル -->
+    <button id="toggleInfo" class="toggle" aria-expanded="false" aria-controls="top-extra">▼ 詳細</button>
+    <!-- セカンダリ（折りたたみ）：Gold / EXP / クリ率 / ソウル / タイマー -->
+    <div class="wrap" id="top-extra" hidden>
+      <div class="pill">所持 <span class="gold"><b id="gold">0</b> G</span></div>
+      <div class="pill">EXP <b id="exp">0/20</b></div>
+      <div class="pill">クリ率 <b id="crit">5%</b></div>
+      <div class="pill">ソウル <b id="souls">0</b></div>
+      <div class="pill"><span class="small" id="bossTimer"></span></div>
+    </div>
   </div>
 </header>
 
 <main>
   <div class="layout">
-    <!-- 左：戦闘 -->
     <section class="panel">
-      <!-- ★ tabindexやroleは外し、完全タップ専用に -->
       <div id="monster" class="monster" aria-label="モンスターを攻撃">
         <div class="monster-emoji" id="monsterFace" aria-hidden="true">👹</div>
         <div class="hpbar" aria-label="モンスターHP"><div id="monsterHP" style="width:100%"></div></div>
@@ -130,16 +86,15 @@
           <span id="monsterHPText">10 / 10</span>
         </div>
         <div class="actions">
-          <button class="btn" id="attackBtn">攻撃（タップ）</button>
-          <button class="btn gold" id="nextBtn" title="倒したら自動で次へ進みます">次の階層へ</button>
+          <button class="btn" id="attackBtn">戦闘開始！</button>
+          <button class="btn gold" id="nextBtn" title="討伐すると進める" disabled>次の階層へ</button>
           <button class="btn danger" id="fleeBtn">1階戻る</button>
         </div>
         <div class="small" id="logline" aria-live="polite"></div>
       </div>
-      <div class="footnote">10階ごとにボス（<span class="warn">制限時間30秒</span>）。死亡すると5秒で自動復活。タップのみで遊べます。</div>
+      <div class="footnote">10階ごとにボス（<span class="warn">制限時間30秒</span>）。未交戦の間は敵は動きません。死亡すると5秒で自動復活（復活後は一度停止）。</div>
     </section>
 
-    <!-- 右：タブ -->
     <section class="panel">
       <div class="tabs">
         <button class="tab active" data-tab="tab-upg">強化</button>
@@ -150,24 +105,15 @@
 
       <div id="tab-upg" class="grid">
         <div class="card">
-          <div class="row">
-            <div><b>攻撃力強化</b><div class="small muted">クリック与ダメを増加</div></div>
-            <div class="gold"><b id="costAtk">10</b> G</div>
-          </div>
+          <div class="row"><div><b>攻撃力強化</b><div class="small muted">クリック与ダメを増加</div></div><div class="gold"><b id="costAtk">10</b> G</div></div>
           <button class="btn" id="buyAtk">購入 (+1 ATK)</button>
         </div>
         <div class="card">
-          <div class="row">
-            <div><b>最大HP強化</b><div class="small muted">耐久を増加</div></div>
-            <div class="gold"><b id="costHP">10</b> G</div>
-          </div>
+          <div class="row"><div><b>最大HP強化</b><div class="small muted">耐久を増加</div></div><div class="gold"><b id="costHP">10</b> G</div></div>
           <button class="btn" id="buyHP">購入 (+5 HP)</button>
         </div>
         <div class="card">
-          <div class="row">
-            <div><b>自動タップ</b><div class="small muted">毎秒自動攻撃（ATKに依存）</div></div>
-            <div class="gold"><b id="costAuto">25</b> G</div>
-          </div>
+          <div class="row"><div><b>自動タップ</b><div class="small muted">毎秒自動攻撃（ATKに依存）</div></div><div class="gold"><b id="costAuto">25</b> G</div></div>
           <button class="btn" id="buyAuto">購入 (+0.2 タップ/秒)</button>
           <div class="small muted">現在：<b id="autoRate">0.0</b> タップ/秒</div>
         </div>
@@ -181,10 +127,7 @@
           <div class="small">指輪：<span id="eq-ring">なし</span></div>
         </div>
         <div class="card">
-          <div class="row">
-            <b>所持品</b>
-            <label class="small"><input type="checkbox" id="autoEquip" /> 強い装備を自動装備</label>
-          </div>
+          <div class="row"><b>所持品</b><label class="small"><input type="checkbox" id="autoEquip" /> 強い装備を自動装備</label></div>
           <div class="inv-list" id="invList"></div>
         </div>
       </div>
@@ -222,555 +165,92 @@
         <div class="card">
           <b>転生（パーマネント強化）</b>
           <div class="small">転生すると階層/装備/所持金がリセットされますが、<b>ソウル</b>を獲得し、与ダメ＆獲得Goldに恒久ボーナス（ソウル1つあたり +2%）</div>
-          <div class="row">
-            <div>獲得見込み：<b id="soulGain">0</b> ソウル</div>
-            <button class="btn danger" id="ascendBtn">転生する</button>
-          </div>
+          <div class="row"><div>獲得見込み：<b id="soulGain">0</b> ソウル</div><button class="btn danger" id="ascendBtn">転生する</button></div>
         </div>
       </div>
-
     </section>
   </div>
 </main>
 
 <script>
-/* ===============================
-   ハクスラ・タップRPG（HTML一枚／タップ専用）
-   =============================== */
+const $ = s=>document.querySelector(s), $$ = s=>document.querySelectorAll(s);
+const RARITIES=[{name:'Common',color:'rar-Common',weight:60,mult:1},{name:'Uncommon',color:'rar-Uncommon',weight:25,mult:1.4},{name:'Rare',color:'rar-Rare',weight:10,mult:2},{name:'Epic',color:'rar-Epic',weight:4,mult:3},{name:'Legendary',color:'rar-Legendary',weight:1,mult:4.5}];
+const MONSTER_POOL=[{name:'ゴブリン',emoji:'👹'},{name:'スケルトン',emoji:'💀'},{name:'コウモリ',emoji:'🦇'},{name:'オオカミ',emoji:'🐺'},{name:'スライム',emoji:'🫧'},{name:'ミイラ',emoji:'🧻'},{name:'魔導書',emoji:'📕'},{name:'目玉',emoji:'👁️'},{name:'サソリ',emoji:'🦂'}];
+const BOSS_POOL=[{name:'オーガ',emoji:'👺'},{name:'ドラゴン',emoji:'🐲'},{name:'リッチ',emoji:'🪦'},{name:'ケルベロス',emoji:'🐶'}];
+const SAVE_KEY='tap_hns_save_v1', UI_TOP='ui_top_extra_v1';
+const state={gold:0,level:1,exp:0,expToNext:20,floor:1,maxFloor:1,kills:0,deaths:0,baseATK:1,baseHP:10,baseDEF:0,baseCRIT:5,autoTap:0,eq:{weapon:null,armor:null,ring:null},inv:[],autoEquip:false,monster:null,playerHP:10,bossEndsAt:0,souls:0,bestMaxFloor:1,isDown:false,engaged:false};
+const prices={atk:10,hp:10,auto:25};
+const ui={floor:$('#floor'),gold:$('#gold'),level:$('#level'),exp:$('#exp'),hpbar:$('#hpbar'),hptext:$('#hptext'),atk:$('#atk'),crit:$('#crit'),souls:$('#souls'),monsterFace:$('#monsterFace'),monsterHP:$('#monsterHP'),monsterHPText:$('#monsterHPText'),monsterName:$('#monsterName'),bossTimer:$('#bossTimer'),logline:$('#logline'),nextBtn:$('#nextBtn'),fleeBtn:$('#fleeBtn'),attackBtn:$('#attackBtn'),tabs:$$('.tab'),tabUpg:$('#tab-upg'),tabInv:$('#tab-inv'),tabSta:$('#tab-sta'),tabSys:$('#tab-sys'),costAtk:$('#costAtk'),costHP:$('#costHP'),costAuto:$('#costAuto'),buyAtk:$('#buyAtk'),buyHP:$('#buyHP'),buyAuto:$('#buyAuto'),autoRate:$('#autoRate'),invList:$('#invList'),eqWeapon:$('#eq-weapon'),eqArmor:$('#eq-armor'),eqRing:$('#eq-ring'),autoEquip:$('#autoEquip'),staAtk:$('#sta-atk'),staHP:$('#sta-hp'),staDef:$('#sta-def'),staCrit:$('#sta-crit'),staGoldB:$('#sta-goldb'),staSoulB:$('#sta-soulb'),staMaxFloor:$('#sta-maxfloor'),staKills:$('#sta-kills'),staDeaths:$('#sta-deaths'),saveBtn:$('#saveBtn'),loadBtn:$('#loadBtn'),exportBtn:$('#exportBtn'),importBtn:$('#importBtn'),wipeBtn:$('#wipeBtn'),ioArea:$('#ioArea'),soulGain:$('#soulGain'),ascendBtn:$('#ascendBtn'),topExtra:$('#top-extra'),toggleInfo:$('#toggleInfo')};
+function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function choice(a){return a[randInt(0,a.length-1)]}
+function weightedPick(items){const t=items.reduce((s,i)=>s+i.weight,0);let r=Math.random()*t;for(const it of items){r-=it.weight;if(r<=0)return it}return items[items.length-1]}
+function soulMG(){return 1+state.souls*0.02}
+function recalcMaxHP(){const armorHP=state.eq.armor?.hp??0;return Math.max(1,state.baseHP+armorHP)}
+function playerATK(){const w=state.eq.weapon?.atk??0,r=state.eq.ring?.atk??0;return Math.max(1,Math.floor((state.baseATK+w+r)*soulMG()))}
+function playerDEF(){return state.baseDEF+(state.eq.armor?.def??0)}
+function playerCRIT(){return clamp(state.baseCRIT+(state.eq.ring?.crit??0),0,100)}
+function goldBPercent(){const rg=state.eq.ring?.goldB??0;return rg+(soulMG()-1)*100}
+function clickDamage(){const c=Math.random()*100<playerCRIT();let d=playerATK();if(c)d=Math.floor(d*1.8);return{dmg:d,isCrit:c}}
+function eHP(f,b){return Math.floor((14*Math.pow(f,1.18)+6)*(b?6:1))}
+function eGold(f,b){return Math.floor((4*Math.pow(f,1.10)+2)*(b?4:1))}
+function eATK(f,b){return Math.floor((1.2*Math.pow(f,1.05)+0.6)*(b?2:1))}
+function makeItem(f){const kinds=['weapon','armor','ring'];const k=choice(kinds);const rar=weightedPick(RARITIES);const mult=rar.mult;const bp=Math.max(1,Math.floor((Math.pow(f,1.12)+randInt(0,f))*0.5*mult));const it={id:cryptoId(),name:'',slot:k,rarity:rar.name,color:rar.color,lvl:f,value:Math.max(1,Math.floor(bp*1.2))};if(k==='weapon'){it.atk=Math.max(1,Math.floor(bp));if(rar.name!=='Common'&&Math.random()<0.35)it.crit=2+Math.floor(mult*2);it.name=`武器 +${it.atk}`}else if(k==='armor'){it.hp=4*Math.max(1,Math.floor(bp*0.9));if(rar.name!=='Common'&&Math.random()<0.3)it.def=Math.floor(mult*1.2);it.name=`鎧 +${it.hp}HP`}else{const r=Math.random();if(r<0.45){it.crit=3+Math.floor(mult*2);it.name=`指輪 クリ+${it.crit}%`}else if(r<0.9){it.atk=Math.max(1,Math.floor(bp*0.6));it.name=`指輪 ATK+${it.atk}`}else{it.goldB=5+Math.floor(mult*4);it.name=`指輪 Gold+${it.goldB}%`}}it.name+=` (${rar.name})`;return it}
+function cryptoId(){const a=new Uint32Array(2);(window.crypto||window.msCrypto).getRandomValues?.(a);return [...a].map(x=>x.toString(16)).join('')}
+function spawnMonster(){const f=state.floor,b=(f%10===0),p=b?BOSS_POOL:MONSTER_POOL,pk=choice(p),hp=eHP(f,b),g=eGold(f,b),atk=eATK(f,b);state.monster={name:(b?'【BOSS】':'')+`Lv${f} ${pk.name}`,emoji:pk.emoji,hp,maxHP:hp,gold:g,atk,isBoss:b};state.engaged=false;state.isDown=false;ui.monsterFace.textContent=pk.emoji;ui.monsterName.textContent=state.monster.name;ui.monsterHPText.textContent=`${state.monster.hp} / ${state.monster.maxHP}`;ui.monsterHP.style.width='100%';ui.logline.textContent=b?'ボス出現！最初の一撃で戦闘開始':'タップで戦闘開始';state.bossEndsAt=0;updateAttackBtn();refreshNextBtn()}
+function awardKill(){const m=state.monster;const gb=1+goldBPercent()/100;const gain=Math.floor(m.gold*gb);state.gold+=gain;state.kills+=1;state.exp+=Math.max(1,Math.floor(3+state.floor*0.6));while(state.exp>=state.expToNext){state.exp-=state.expToNext;state.level+=1;state.expToNext=Math.floor(state.expToNext*1.25+8);state.baseATK+=1;state.baseHP+=2;ui.logline.textContent='レベルアップ！ATK+1 / HP+2'}const luck=(state.eq.ring?.goldB??0)*0.2;const drop=0.20+luck/100;if(Math.random()<drop){const it=makeItem(state.floor);state.inv.push(it);if(state.autoEquip) tryAutoEquip(it);toast(`ドロップ：${renderItemText(it)}`)}else{toast(`+${gain}G`)}if(state.floor>state.maxFloor)state.maxFloor=state.floor;if(state.maxFloor>state.bestMaxFloor)state.bestMaxFloor=state.maxFloor}
+function renderItemText(it){const p=[];if(it.atk)p.push(`ATK+${it.atk}`);if(it.hp)p.push(`HP+${it.hp}`);if(it.def)p.push(`防御+${it.def}`);if(it.crit)p.push(`クリ+${it.crit}%`);if(it.goldB)p.push(`Gold+${it.goldB}%`);return `${it.name} [${p.join(', ')}]`}
+function tryAutoEquip(it){const s=it.slot,cur=state.eq[s];if(scoreItem(it)>scoreItem(cur)){state.eq[s]=it;toast(`自動装備：${renderItemText(it)}`);updateAttackBtn()}}
+function scoreItem(it){if(!it)return-1e9;let s=0;s+=(it.atk??0)*3+(it.hp??0)*0.4+(it.def??0)*2+(it.crit??0)*1.5+(it.goldB??0)*0.8;s+=(it.lvl??0)*0.2;const rar=RARITIES.find(r=>r.name===it.rarity);s*=rar?.mult??1;return s}
+function updateAttackBtn(){const m=state.monster;if(!m){ui.attackBtn.textContent='攻撃';return}const expected=playerATK();if(!state.engaged){ui.attackBtn.textContent=(expected>=m.hp)?'倒す':'戦闘開始！';return}ui.attackBtn.textContent=(expected>=m.hp)?'倒す':'攻撃（タップ）'}
+function refreshNextBtn(){ui.nextBtn.disabled=!(state.monster&&state.monster.hp<=0)}
+function attack(){if(!state.monster)return;if(state.playerHP<=0){toast('気絶中…');return}const first=!state.engaged;if(first){state.engaged=true;if(state.monster.isBoss&&state.bossEndsAt===0){state.bossEndsAt=Date.now()+30000}}const m=state.monster;if(m.hp<=0)return;const {dmg,isCrit}=clickDamage();const dealt=Math.min(m.hp,dmg);m.hp-=dealt;ui.monsterHP.style.width=`${(m.hp/m.maxHP)*100}%`;ui.monsterHPText.textContent=`${m.hp} / ${m.maxHP}`;ui.logline.textContent=isCrit?`クリティカル！ -${dealt}`:`-${dealt}`;if(m.hp<=0){awardKill();state.floor+=1;if(state.floor%10===0)toast('ボスフロアに到達！');spawnMonster()}updateAttackBtn();refreshNextBtn()}
+function enemyTick(dt){if(!state.monster||!state.engaged||state.isDown)return;const m=state.monster;if(m.hp<=0)return;const dps=Math.max(0,m.atk-playerDEF()*0.6);const dmg=dps*dt;if(dmg<=0)return;state.playerHP-=dmg;if(state.playerHP<=0&&!state.isDown){state.playerHP=0;state.isDown=true;state.deaths+=1;ui.logline.textContent='気絶しました…5秒後に復活';setTimeout(()=>{state.playerHP=recalcMaxHP();state.isDown=false;state.engaged=false; // ★ 復活後は止める
+ui.logline.textContent='復活！';updateAttackBtn();},5000)}}
+function regenTick(dt){if(state.playerHP>0){const mx=recalcMaxHP();state.playerHP=clamp(state.playerHP+dt*(0.8+state.level*0.02),0,mx)}}
+function autoTapTick(dt){if(state.autoTap<=0||!state.engaged||state.isDown)return;autoTapTick._acc=(autoTapTick._acc||0)+state.autoTap*dt;while(autoTapTick._acc>=1){autoTapTick._acc-=1;attack()}}
+function bossTimerTick(){if(state.bossEndsAt>0){const left=Math.max(0,state.bossEndsAt-Date.now());if(left<=0){state.bossEndsAt=0;toast('ボス討伐失敗…1階戻る');state.floor=Math.max(1,state.floor-1);spawnMonster()}ui.bossTimer.textContent=`（ボス残り ${Math.ceil(left/1000)}s）`}else{ui.bossTimer.textContent=''}}
+function toast(m){ui.logline.textContent=m}
+function updateUI(){ui.floor.textContent=state.floor;ui.gold.textContent=Math.floor(state.gold);ui.level.textContent=state.level;ui.exp.textContent=`${state.exp}/${state.expToNext}`;ui.atk.textContent=playerATK();ui.crit.textContent=`${Math.floor(playerCRIT())}%`;ui.souls.textContent=state.souls;const mx=recalcMaxHP();const pct=clamp(state.playerHP/mx*100,0,100);ui.hpbar.style.width=`${pct}%`;ui.hptext.textContent=`${Math.floor(state.playerHP)}/${mx}`;ui.costAtk.textContent=prices.atk;ui.costHP.textContent=prices.hp;ui.costAuto.textContent=prices.auto;ui.autoRate.textContent=state.autoTap.toFixed(1);if(ui.staAtk){ui.staAtk.textContent=playerATK();ui.staHP.textContent=recalcMaxHP();ui.staDef.textContent=playerDEF();ui.staCrit.textContent=`${Math.floor(playerCRIT())}%`;ui.staGoldB.textContent=`${Math.floor(goldBPercent())}%`;ui.staSoulB.textContent=`${Math.floor((soulMG()-1)*100)}%`;ui.staMaxFloor.textContent=state.maxFloor;ui.staKills.textContent=state.kills;ui.staDeaths.textContent=state.deaths}const gain=Math.floor(state.maxFloor/30);ui.soulGain&&(ui.soulGain.textContent=gain);updateAttackBtn();refreshNextBtn()}
+function renderInventory(){const box=ui.invList;if(!box)return;box.innerHTML='';for(const it of state.inv){const div=document.createElement('div');div.className='card';const title=document.createElement('div');title.innerHTML=`<b class="${it.color}">${it.name}</b>`;const stats=document.createElement('div');stats.className='small';stats.textContent=renderItemText(it);const row=document.createElement('div');row.className='row';const equipBtn=document.createElement('button');equipBtn.className='btn';equipBtn.textContent='装備';equipBtn.onclick=()=>{state.eq[it.slot]=it;toast(`装備：${renderItemText(it)}`);updateUI()};const sellBtn=document.createElement('button');sellBtn.className='btn gold';sellBtn.textContent=`売却 (+${Math.floor(it.value)}G)`;sellBtn.onclick=()=>{state.gold+=Math.floor(it.value);state.inv=state.inv.filter(x=>x!==it);renderInventory();updateUI()};row.appendChild(equipBtn);row.appendChild(sellBtn);div.appendChild(title);div.appendChild(stats);div.appendChild(row);box.appendChild(div)}}
+function buy(key,cb){const c=prices[key];if(state.gold<c){toast('お金が足りない…');return}state.gold-=c;cb();prices[key]=Math.floor(prices[key]*1.35+2);updateUI()}
+function save(manual=false){const data=JSON.stringify({state:{...state,bossEndsAt:0},prices});localStorage.setItem(SAVE_KEY,data);if(manual)toast('保存しました');ui.ioArea&&(ui.ioArea.value=data)}
+function load(manual=false){const raw=localStorage.getItem(SAVE_KEY);if(!raw){if(manual)toast('保存データがありません');return}try{const o=JSON.parse(raw);Object.assign(state,o.state);Object.assign(prices,o.prices||{});state.playerHP=clamp(state.playerHP,0,recalcMaxHP());ui.autoEquip&&(ui.autoEquip.checked=!!state.autoEquip);spawnMonster();renderInventory();updateUI();if(manual)toast('読込しました')}catch(e){console.error(e);toast('読込に失敗しました')}}
+function exportSave(){save(false);const raw=localStorage.getItem(SAVE_KEY);ui.ioArea&&(ui.ioArea.value=raw||'');toast('エクスポート欄に保存データを出力しました')}
+function importSave(){const raw=ui.ioArea?.value.trim();if(!raw){toast('データが空です');return}try{JSON.parse(raw);localStorage.setItem(SAVE_KEY,raw);load(false);toast('インポート＆読込しました')}catch(e){toast('インポート失敗：JSONが不正です')}}
+function wipeAll(){if(!confirm('本当に全削除しますか？（元に戻せません）'))return;localStorage.removeItem(SAVE_KEY);location.reload()}
+function ascend(){const g=Math.floor(state.maxFloor/30);if(g<=0){toast('転生できるほど進んでいません');return}if(!confirm(`転生しますか？獲得ソウル：${g}`))return;state.souls+=g;const keepBest=Math.max(state.bestMaxFloor,state.maxFloor);const keepSouls=state.souls;Object.assign(state,{gold:0,level:1,exp:0,expToNext:20,floor:1,maxFloor:1,kills:0,deaths:0,baseATK:1,baseHP:10,baseDEF:0,baseCRIT:5,autoTap:0,eq:{weapon:null,armor:null,ring:null},inv:[],autoEquip:state.autoEquip,monster:null,playerHP:10,bossEndsAt:0,souls:keepSouls,bestMaxFloor:keepBest,isDown:false,engaged:false});prices.atk=10;prices.hp=10;prices.auto=25;spawnMonster();updateUI();renderInventory();toast('転生！恒久ボーナスが強化されました')}
 
-const $ = sel => document.querySelector(sel);
-const $$ = sel => document.querySelectorAll(sel);
+/* 長押し連打防止（pointer一発のみ） */
+let _pressing=false,_lock=false;function singleFire(){if(_pressing||_lock)return;_pressing=true;_lock=true;attack();setTimeout(()=>_lock=false,250)}
+function bindSingle(el){el.addEventListener('pointerdown',e=>{e.preventDefault();singleFire()},{passive:false});el.addEventListener('pointerup',()=>{_pressing=false});el.addEventListener('pointercancel',()=>{_pressing=false});el.addEventListener('pointerleave',()=>{_pressing=false});el.addEventListener('click',()=>{singleFire()})}
 
-const RARITIES = [
-  {name:'Common',    color:'rar-Common',    weight:60, mult:1.00},
-  {name:'Uncommon',  color:'rar-Uncommon',  weight:25, mult:1.40},
-  {name:'Rare',      color:'rar-Rare',      weight:10, mult:2.00},
-  {name:'Epic',      color:'rar-Epic',      weight:4,  mult:3.00},
-  {name:'Legendary', color:'rar-Legendary', weight:1,  mult:4.50},
-];
-const MONSTER_POOL = [
-  {name:'ゴブリン', emoji:'👹'},
-  {name:'スケルトン', emoji:'💀'},
-  {name:'コウモリ', emoji:'🦇'},
-  {name:'オオカミ', emoji:'🐺'},
-  {name:'スライム', emoji:'🫧'},
-  {name:'ミイラ', emoji:'🧻'},
-  {name:'魔導書', emoji:'📕'},
-  {name:'目玉', emoji:'👁️'},
-  {name:'サソリ', emoji:'🦂'},
-];
-const BOSS_POOL = [
-  {name:'オーガ', emoji:'👺'},
-  {name:'ドラゴン', emoji:'🐲'},
-  {name:'リッチ', emoji:'🪦'},
-  {name:'ケルベロス', emoji:'🐶'},
-];
+/* 事件 */
+bindSingle(ui.attackBtn);bindSingle(document.getElementById('monster'));
+ui.nextBtn.addEventListener('click',()=>{if(!state.monster||state.monster.hp>0){toast('まだ討伐していない！');return}state.floor+=1;spawnMonster();updateUI()});
+ui.fleeBtn.addEventListener('click',()=>{state.floor=Math.max(1,state.floor-1);spawnMonster();updateUI()});
+ui.buyAtk.addEventListener('click',()=>buy('atk',()=>{state.baseATK+=1;updateAttackBtn()}));
+ui.buyHP.addEventListener('click',()=>buy('hp',()=>{state.baseHP+=5;state.playerHP=recalcMaxHP()}));
+ui.buyAuto.addEventListener('click',()=>buy('auto',()=>{state.autoTap=parseFloat((state.autoTap+0.2).toFixed(1))}));
+ui.autoEquip&&ui.autoEquip.addEventListener('change',e=>{state.autoEquip=e.target.checked});
+ui.saveBtn&&ui.saveBtn.addEventListener('click',()=>save(true));
+ui.loadBtn&&ui.loadBtn.addEventListener('click',()=>load(true));
+ui.exportBtn&&ui.exportBtn.addEventListener('click',exportSave);
+ui.importBtn&&ui.importBtn.addEventListener('click',importSave);
+ui.wipeBtn&&ui.wipeBtn.addEventListener('click',wipeAll);
+ui.ascendBtn&&ui.ascendBtn.addEventListener('click',ascend);
+ui.tabs.forEach(t=>{t.addEventListener('click',()=>{ui.tabs.forEach(x=>x.classList.remove('active'));t.classList.add('active');const id=t.dataset.tab;[ui.tabUpg,ui.tabInv,ui.tabSta,ui.tabSys].forEach(el=>el.setAttribute('hidden',''));document.getElementById(id).removeAttribute('hidden')})});
 
-const SAVE_KEY = 'tap_hns_save_v1';
+/* トップバー折りたたみ */
+function applyTopbarCollapsed(collapsed){if(collapsed){ui.topExtra.setAttribute('hidden','');ui.toggleInfo.setAttribute('aria-expanded','false');ui.toggleInfo.textContent='▼ 詳細'}else{ui.topExtra.removeAttribute('hidden');ui.toggleInfo.setAttribute('aria-expanded','true');ui.toggleInfo.textContent='▲ 閉じる'}localStorage.setItem(UI_TOP, collapsed?'1':'0')}
+ui.toggleInfo.addEventListener('click',()=>{const col=ui.toggleInfo.getAttribute('aria-expanded')==='true';applyTopbarCollapsed(col)});
 
-const state = {
-  gold: 0,
-  level: 1,
-  exp: 0,
-  expToNext: 20,
-  floor: 1,
-  maxFloor: 1,
-  kills: 0,
-  deaths: 0,
-  baseATK: 1,
-  baseHP: 10,
-  baseDEF: 0,
-  baseCRIT: 5, // %
-  autoTap: 0, // taps/sec
-  eq: {weapon:null, armor:null, ring:null},
-  inv: [],
-  autoEquip: false,
-  monster: null,
-  playerHP: 10,
-  bossEndsAt: 0,
-  souls: 0,
-  bestMaxFloor: 1,
-};
-const prices = { atk: 10, hp: 10, auto: 25 };
+/* ループ */
+let last=performance.now();
+function loop(now){const dt=Math.min(0.1,(now-last)/1000);last=now;autoTapTick(dt);enemyTick(dt);regenTick(dt);bossTimerTick();updateUI();requestAnimationFrame(loop)}
 
-const ui = {
-  floor: $('#floor'), gold: $('#gold'), level: $('#level'), exp: $('#exp'),
-  hpbar: $('#hpbar'), hptext: $('#hptext'),
-  atk: $('#atk'), crit: $('#crit'), souls: $('#souls'),
-  monsterFace: $('#monsterFace'), monsterHP: $('#monsterHP'),
-  monsterHPText: $('#monsterHPText'), monsterName: $('#monsterName'),
-  bossTimer: $('#bossTimer'), logline: $('#logline'),
-  nextBtn: $('#nextBtn'), fleeBtn: $('#fleeBtn'), attackBtn: $('#attackBtn'),
-  tabs: $$('.tab'),
-  tabUpg: $('#tab-upg'), tabInv: $('#tab-inv'), tabSta: $('#tab-sta'), tabSys: $('#tab-sys'),
-  costAtk: $('#costAtk'), costHP: $('#costHP'), costAuto: $('#costAuto'),
-  buyAtk: $('#buyAtk'), buyHP: $('#buyHP'), buyAuto: $('#buyAuto'), autoRate: $('#autoRate'),
-  invList: $('#invList'), eqWeapon: $('#eq-weapon'), eqArmor: $('#eq-armor'), eqRing: $('#eq-ring'),
-  autoEquip: $('#autoEquip'),
-  staAtk: $('#sta-atk'), staHP: $('#sta-hp'), staDef: $('#sta-def'), staCrit: $('#sta-crit'),
-  staGoldB: $('#sta-goldb'), staSoulB: $('#sta-soulb'),
-  staMaxFloor: $('#sta-maxfloor'), staKills: $('#sta-kills'), staDeaths: $('#sta-deaths'),
-  saveBtn: $('#saveBtn'), loadBtn: $('#loadBtn'), exportBtn: $('#exportBtn'), importBtn: $('#importBtn'), wipeBtn: $('#wipeBtn'), ioArea: $('#ioArea'),
-  soulGain: $('#soulGain'), ascendBtn: $('#ascendBtn'),
-};
-
-function clamp(n, a, b){return Math.max(a, Math.min(b, n));}
-function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
-function choice(arr){return arr[randInt(0, arr.length-1)];}
-function weightedPick(items){
-  const total = items.reduce((s,i)=>s+i.weight,0);
-  let r = Math.random()*total;
-  for(const it of items){ r -= it.weight; if(r<=0) return it; }
-  return items[items.length-1];
-}
-function soulDamageGoldMultiplier(){ return 1 + state.souls * 0.02; }
-
-function recalcPlayerMaxHP(){
-  const armorHP = state.eq.armor?.hp ?? 0;
-  const total = state.baseHP + armorHP;
-  return Math.max(1,total);
-}
-function playerATK(){
-  const wATK = state.eq.weapon?.atk ?? 0;
-  const ringATK = state.eq.ring?.atk ?? 0;
-  const total = (state.baseATK + wATK + ringATK) * soulDamageGoldMultiplier();
-  return Math.max(1, Math.floor(total));
-}
-function playerDEF(){ return state.baseDEF + (state.eq.armor?.def ?? 0); }
-function playerCRIT(){ return clamp(state.baseCRIT + (state.eq.ring?.crit ?? 0), 0, 100); }
-function goldBonusPercent(){
-  const ringGold = state.eq.ring?.goldB ?? 0;
-  const total = ringGold + (soulDamageGoldMultiplier()-1)*100;
-  return total;
-}
-function clickDamage(){
-  const isCrit = Math.random()*100 < playerCRIT();
-  let dmg = playerATK();
-  if(isCrit) dmg = Math.floor(dmg * 1.8);
-  return { dmg, isCrit };
-}
-
-function enemyScaleHP(floor, isBoss){
-  const base = 14 * Math.pow(floor, 1.18) + 6;
-  return Math.floor(base * (isBoss? 6.0 : 1.0));
-}
-function enemyScaleGold(floor, isBoss){
-  const base = 4 * Math.pow(floor, 1.10) + 2;
-  return Math.floor(base * (isBoss? 4.0 : 1.0));
-}
-function enemyScaleATK(floor, isBoss){
-  const base = 1.2 * Math.pow(floor, 1.05) + 0.6;
-  return Math.floor(base * (isBoss? 2.0 : 1.0));
-}
-
-function makeItem(floor){
-  const kinds = ['weapon','armor','ring'];
-  const kind = choice(kinds);
-  const rar = weightedPick(RARITIES);
-  const mult = rar.mult;
-
-  const basePow = Math.max(1, Math.floor( (Math.pow(floor, 1.12) + randInt(0, floor)) * 0.5 * mult ));
-  const item = {
-    id: cryptoRandomId(),
-    name: '',
-    slot: kind,
-    rarity: rar.name,
-    color: rar.color,
-    lvl: floor,
-    value: Math.max(1, Math.floor(basePow * 1.2)),
-  };
-  if(kind==='weapon'){
-    item.atk = Math.max(1, Math.floor(basePow));
-    if(rar.name !== 'Common' && Math.random()<0.35) item.crit = 2 + Math.floor(mult*2);
-    item.name = `武器 +${item.atk}`;
-  }else if(kind==='armor'){
-    item.hp = 4 * Math.max(1, Math.floor(basePow*0.9));
-    if(rar.name !== 'Common' && Math.random()<0.3) item.def = Math.floor(mult*1.2);
-    item.name = `鎧 +${item.hp}HP`;
-  }else{
-    const roll = Math.random();
-    if(roll<0.45) { item.crit = 3 + Math.floor(mult*2); item.name = `指輪 クリ+${item.crit}%`; }
-    else if(roll<0.9) { item.atk = Math.max(1, Math.floor(basePow*0.6)); item.name = `指輪 ATK+${item.atk}`; }
-    else { item.goldB = 5 + Math.floor(mult*4); item.name = `指輪 Gold+${item.goldB}%`; }
-  }
-  item.name += ` (${rar.name})`;
-  return item;
-}
-function cryptoRandomId(){
-  const a = new Uint32Array(2);
-  (window.crypto||window.msCrypto).getRandomValues?.(a);
-  return [...a].map(x=>x.toString(16)).join('');
-}
-
-function spawnMonster(){
-  const floor = state.floor;
-  const isBoss = (floor % 10 === 0);
-  const pool = isBoss ? BOSS_POOL : MONSTER_POOL;
-  const pick = choice(pool);
-  const hp = enemyScaleHP(floor, isBoss);
-  const gold = enemyScaleGold(floor, isBoss);
-  const atk = enemyScaleATK(floor, isBoss);
-
-  state.monster = { name: (isBoss? '【BOSS】':'')+`Lv${floor} ${pick.name}`, emoji: pick.emoji, hp, maxHP: hp, gold, atk, isBoss };
-  ui.monsterFace.textContent = pick.emoji;
-  ui.monsterName.textContent = state.monster.name;
-  ui.monsterHPText.textContent = `${state.monster.hp} / ${state.monster.maxHP}`;
-  ui.monsterHP.style.width = '100%';
-  ui.logline.textContent = isBoss ? 'ボス出現！30秒以内に倒せ！' : 'タップで攻撃！';
-
-  if(isBoss){
-    state.bossEndsAt = Date.now() + 30_000;
-  }else{
-    state.bossEndsAt = 0;
-  }
-}
-
-function awardKill(){
-  const m = state.monster;
-  const goldB = 1 + goldBonusPercent()/100;
-  const gain = Math.floor(m.gold * goldB);
-  state.gold += gain;
-  state.kills += 1;
-  state.exp += Math.max(1, Math.floor(3 + state.floor*0.6));
-  while(state.exp >= state.expToNext){
-    state.exp -= state.expToNext;
-    state.level += 1;
-    state.expToNext = Math.floor(state.expToNext * 1.25 + 8);
-    state.baseATK += 1;
-    state.baseHP += 2;
-    ui.logline.textContent = `レベルアップ！ATK+1 / HP+2`;
-  }
-  const luck = (state.eq.ring?.goldB ?? 0) * 0.2;
-  const dropChance = 0.20 + luck/100;
-  if(Math.random() < dropChance){
-    const it = makeItem(state.floor);
-    state.inv.push(it);
-    if(state.autoEquip) tryAutoEquip(it);
-    toast(`ドロップ：${renderItemText(it)}`);
-  }else{
-    toast(`+${gain}G`);
-  }
-  if(state.floor > state.maxFloor) state.maxFloor = state.floor;
-  if(state.maxFloor > state.bestMaxFloor) state.bestMaxFloor = state.maxFloor;
-}
-
-function renderItemText(it){
-  const parts = [];
-  if(it.atk) parts.push(`ATK+${it.atk}`);
-  if(it.hp) parts.push(`HP+${it.hp}`);
-  if(it.def) parts.push(`防御+${it.def}`);
-  if(it.crit) parts.push(`クリ+${it.crit}%`);
-  if(it.goldB) parts.push(`Gold+${it.goldB}%`);
-  return `${it.name} [${parts.join(', ')}]`;
-}
-
-function tryAutoEquip(newItem){
-  const slot = newItem.slot;
-  const cur = state.eq[slot];
-  if(betterThan(newItem, cur)){
-    state.eq[slot] = newItem;
-    toast(`自動装備：${renderItemText(newItem)}`);
-  }
-}
-function scoreItem(it){
-  if(!it) return -1e9;
-  let s = 0;
-  s += (it.atk??0)*3 + (it.hp??0)*0.4 + (it.def??0)*2 + (it.crit??0)*1.5 + (it.goldB??0)*0.8;
-  s += (it.lvl??0)*0.2;
-  const rar = RARITIES.find(r=>r.name===it.rarity);
-  s *= rar?.mult ?? 1;
-  return s;
-}
-function betterThan(a,b){ return scoreItem(a) > scoreItem(b); }
-
-function attack(){
-  if(!state.monster) return;
-  if(state.playerHP<=0){ toast('気絶中…'); return; }
-  const m = state.monster;
-  if(m.hp<=0) return;
-
-  const {dmg, isCrit} = clickDamage();
-  const dealt = Math.min(m.hp, dmg);
-  m.hp -= dealt;
-  ui.monsterHP.style.width = `${(m.hp/m.maxHP)*100}%`;
-  ui.monsterHPText.textContent = `${m.hp} / ${m.maxHP}`;
-  ui.logline.textContent = isCrit ? `クリティカル！ -${dealt}` : `-${dealt}`;
-
-  if(m.hp<=0){
-    awardKill();
-    state.floor += 1;
-    if(state.floor%10===0) toast('ボスフロアに到達！');
-    spawnMonster();
-  }
-}
-
-function enemyTick(dt){
-  if(!state.monster) return;
-  const m = state.monster;
-  if(m.hp<=0) return;
-  const dps = Math.max(0, m.atk - playerDEF()*0.6);
-  const dmg = dps * dt;
-  if(dmg<=0) return;
-  state.playerHP -= dmg;
-  if(state.playerHP<=0){
-    state.playerHP = 0;
-    state.deaths += 1;
-    ui.logline.textContent = '気絶しました…5秒後に復活';
-    if(!enemyTick._reviving){
-      enemyTick._reviving = true;
-      setTimeout(()=>{
-        state.playerHP = recalcPlayerMaxHP();
-        enemyTick._reviving = false;
-        ui.logline.textContent = '復活！';
-      }, 5000);
-    }
-  }
-}
-function regenTick(dt){
-  if(state.playerHP>0){
-    const maxhp = recalcPlayerMaxHP();
-    state.playerHP = clamp(state.playerHP + dt * (0.8 + state.level*0.02), 0, maxhp);
-  }
-}
-function autoTapTick(dt){
-  if(state.autoTap<=0) return;
-  autoTapTick._acc = (autoTapTick._acc||0) + state.autoTap * dt;
-  while(autoTapTick._acc >= 1){
-    autoTapTick._acc -= 1;
-    attack();
-  }
-}
-function bossTimerTick(){
-  if(state.bossEndsAt>0){
-    const left = Math.max(0, state.bossEndsAt - Date.now());
-    if(left<=0){
-      state.bossEndsAt = 0;
-      toast('ボス討伐失敗…1階戻る');
-      state.floor = Math.max(1, state.floor-1);
-      spawnMonster();
-    }
-    ui.bossTimer.textContent = `（ボス残り ${Math.ceil(left/1000)}s）`;
-  }else{
-    ui.bossTimer.textContent = '';
-  }
-}
-function toast(msg){ ui.logline.textContent = msg; }
-
-function updateUI(){
-  ui.floor.textContent = state.floor;
-  ui.gold.textContent = Math.floor(state.gold);
-  ui.level.textContent = state.level;
-  ui.exp.textContent = `${state.exp}/${state.expToNext}`;
-  ui.atk.textContent = playerATK();
-  ui.crit.textContent = `${Math.floor(playerCRIT())}%`;
-  ui.souls.textContent = state.souls;
-
-  const maxhp = recalcPlayerMaxHP();
-  const hpPct = clamp(state.playerHP/maxhp*100, 0, 100);
-  ui.hpbar.style.width = `${hpPct}%`;
-  ui.hptext.textContent = `${Math.floor(state.playerHP)}/${maxhp}`;
-
-  ui.costAtk.textContent = prices.atk;
-  ui.costHP.textContent = prices.hp;
-  ui.costAuto.textContent = prices.auto;
-  ui.autoRate.textContent = state.autoTap.toFixed(1);
-
-  ui.staAtk.textContent = playerATK();
-  ui.staHP.textContent = recalcPlayerMaxHP();
-  ui.staDef.textContent = playerDEF();
-  ui.staCrit.textContent = `${Math.floor(playerCRIT())}%`;
-  ui.staGoldB.textContent = `${Math.floor(goldBonusPercent())}%`;
-  ui.staSoulB.textContent = `${Math.floor((soulDamageGoldMultiplier()-1)*100)}%`;
-  ui.staMaxFloor.textContent = state.maxFloor;
-  ui.staKills.textContent = state.kills;
-  ui.staDeaths.textContent = state.deaths;
-
-  ui.eqWeapon.textContent = state.eq.weapon ? renderItemText(state.eq.weapon) : 'なし';
-  ui.eqArmor.textContent  = state.eq.armor  ? renderItemText(state.eq.armor)  : 'なし';
-  ui.eqRing.textContent   = state.eq.ring   ? renderItemText(state.eq.ring)   : 'なし';
-
-  const gain = Math.floor(state.maxFloor / 30);
-  ui.soulGain.textContent = gain;
-}
-
-function renderInventory(){
-  const box = ui.invList;
-  box.innerHTML = '';
-  for(const it of state.inv){
-    const div = document.createElement('div');
-    div.className = 'card';
-    const title = document.createElement('div');
-    title.innerHTML = `<b class="${it.color}">${it.name}</b>`;
-    const stats = document.createElement('div');
-    stats.className = 'small';
-    stats.textContent = renderItemText(it);
-    const row = document.createElement('div');
-    row.className = 'row';
-    const equipBtn = document.createElement('button');
-    equipBtn.className = 'btn';
-    equipBtn.textContent = '装備';
-    equipBtn.onclick = ()=>{
-      state.eq[it.slot] = it;
-      toast(`装備：${renderItemText(it)}`);
-      updateUI();
-    };
-    const sellBtn = document.createElement('button');
-    sellBtn.className = 'btn gold';
-    sellBtn.textContent = `売却 (+${Math.floor(it.value)}G)`;
-    sellBtn.onclick = ()=>{
-      state.gold += Math.floor(it.value);
-      state.inv = state.inv.filter(x=>x!==it);
-      renderInventory();
-      updateUI();
-    };
-    row.appendChild(equipBtn); row.appendChild(sellBtn);
-
-    div.appendChild(title);
-    div.appendChild(stats);
-    div.appendChild(row);
-    box.appendChild(div);
-  }
-}
-
-function buy(costKey, onBuy){
-  const cost = prices[costKey];
-  if(state.gold < cost){ toast('お金が足りない…'); return; }
-  state.gold -= cost;
-  onBuy();
-  prices[costKey] = Math.floor(prices[costKey] * 1.35 + 2);
-  updateUI();
-}
-
-function save(manual=false){
-  const data = JSON.stringify({
-    state:{ ...state, bossEndsAt: 0 },
-    prices
-  });
-  localStorage.setItem(SAVE_KEY, data);
-  if(manual) toast('保存しました');
-  ui.ioArea.value = data;
-}
-function load(manual=false){
-  const raw = localStorage.getItem(SAVE_KEY);
-  if(!raw){ if(manual) toast('保存データがありません'); return; }
-  try{
-    const obj = JSON.parse(raw);
-    Object.assign(state, obj.state);
-    Object.assign(prices, obj.prices||{});
-    state.playerHP = clamp(state.playerHP, 0, recalcPlayerMaxHP());
-    ui.autoEquip.checked = !!state.autoEquip;
-    spawnMonster();
-    renderInventory();
-    updateUI();
-    if(manual) toast('読込しました');
-  }catch(e){
-    console.error(e);
-    toast('読込に失敗しました');
-  }
-}
-function exportSave(){
-  save(false);
-  const raw = localStorage.getItem(SAVE_KEY);
-  ui.ioArea.value = raw||'';
-  toast('エクスポート欄に保存データを出力しました');
-}
-function importSave(){
-  const raw = ui.ioArea.value.trim();
-  if(!raw){ toast('データが空です'); return; }
-  try{
-    JSON.parse(raw);
-    localStorage.setItem(SAVE_KEY, raw);
-    load(false);
-    toast('インポート＆読込しました');
-  }catch(e){
-    toast('インポート失敗：JSONが不正です');
-  }
-}
-function wipeAll(){
-  if(!confirm('本当に全削除しますか？（元に戻せません）')) return;
-  localStorage.removeItem(SAVE_KEY);
-  location.reload();
-}
-function ascend(){
-  const gain = Math.floor(state.maxFloor / 30);
-  if(gain<=0){ toast('転生できるほど進んでいません'); return; }
-  if(!confirm(`転生しますか？獲得ソウル：${gain}`)) return;
-  state.souls += gain;
-  const keepBest = Math.max(state.bestMaxFloor, state.maxFloor);
-  const keepSouls = state.souls;
-  Object.assign(state, {
-    gold:0, level:1, exp:0, expToNext:20,
-    floor:1, maxFloor:1, kills:0, deaths:0,
-    baseATK:1, baseHP:10, baseDEF:0, baseCRIT:5,
-    autoTap:0,
-    eq:{weapon:null, armor:null, ring:null},
-    inv:[], autoEquip: state.autoEquip,
-    monster:null, playerHP:10, bossEndsAt:0,
-    souls: keepSouls, bestMaxFloor: keepBest,
-  });
-  prices.atk=10; prices.hp=10; prices.auto=25;
-  spawnMonster(); updateUI(); renderInventory();
-  toast('転生！恒久ボーナスが強化されました');
-}
-
-/* ===== イベント（タップのみ） ===== */
-ui.attackBtn.addEventListener('click', attack);
-$('#monster').addEventListener('click', attack);
-/* ★ キーボード（Space/Enter）ハンドラは削除 */
-// $('#monster').addEventListener('keydown', ... ); ←削除
-
-ui.nextBtn.addEventListener('click', ()=>{ state.floor+=1; spawnMonster(); updateUI(); });
-ui.fleeBtn.addEventListener('click', ()=>{ state.floor = Math.max(1, state.floor-1); spawnMonster(); updateUI(); });
-
-ui.buyAtk.addEventListener('click', ()=>buy('atk', ()=>{ state.baseATK+=1; }));
-ui.buyHP.addEventListener('click', ()=>buy('hp', ()=>{ state.baseHP+=5; state.playerHP = recalcPlayerMaxHP(); }));
-ui.buyAuto.addEventListener('click', ()=>buy('auto', ()=>{ state.autoTap = parseFloat((state.autoTap+0.2).toFixed(1)); }));
-
-ui.autoEquip.addEventListener('change', (e)=>{ state.autoEquip = e.target.checked; });
-
-ui.saveBtn.addEventListener('click', ()=>save(true));
-ui.loadBtn.addEventListener('click', ()=>load(true));
-ui.exportBtn.addEventListener('click', exportSave);
-ui.importBtn.addEventListener('click', importSave);
-ui.wipeBtn.addEventListener('click', wipeAll);
-
-ui.ascendBtn.addEventListener('click', ascend);
-
-ui.tabs.forEach(t=>{
-  t.addEventListener('click', ()=>{
-    ui.tabs.forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    const id = t.dataset.tab;
-    [ui.tabUpg, ui.tabInv, ui.tabSta, ui.tabSys].forEach(el=>el.hidden=true);
-    document.getElementById(id).hidden=false;
-  });
-});
-
-/* ===== ループ ===== */
-let last = performance.now();
-function loop(now){
-  const dt = Math.min(0.1, (now-last)/1000);
-  last = now;
-
-  autoTapTick(dt);
-  enemyTick(dt);
-  regenTick(dt);
-  bossTimerTick();
-  updateUI();
-
-  requestAnimationFrame(loop);
-}
-
-/* ===== 起動 ===== */
-(function init(){
-  load(false);
-  if(!state.monster) spawnMonster();
-  renderInventory();
-  updateUI();
-  requestAnimationFrame(loop);
-  setInterval(()=>save(false), 10_000);
-  window.addEventListener('beforeunload', ()=>save(false));
-})();
+/* 起動 */
+(function init(){const pref=localStorage.getItem(UI_TOP);applyTopbarCollapsed(pref!=='0');load(false);if(!state.monster)spawnMonster();renderInventory();updateUI();requestAnimationFrame(loop);setInterval(()=>save(false),10000);window.addEventListener('beforeunload',()=>save(false))})();
 </script>
 </body>
 </html>
