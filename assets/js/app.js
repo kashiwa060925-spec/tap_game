@@ -1,42 +1,29 @@
-'use strict';
-const SAVE_KEY = 'simple_tap_v1';
-const $ = (s)=>document.querySelector(s);
-const scoreEl = $('#score');
-const tapBtn   = $('#tapBtn');
-const saveBtn  = $('#saveBtn');
-const resetBtn = $('#resetBtn');
-const statusEl = $('#status');
+console.log("app.js loaded");
 
-const state = { score: 0 };
+let score = 0;
+const scoreEl = document.getElementById("score");
+const statusEl = document.getElementById("status");
 
-function render(){ scoreEl.textContent = String(Math.floor(state.score)); }
-function setStatus(t){ statusEl.textContent = t; }
+document.getElementById("tapBtn").onclick = () => {
+  score++;
+  scoreEl.textContent = score;
+  statusEl.textContent = "TAP!";
+};
 
-function load(){
-  try{
-    const raw = localStorage.getItem(SAVE_KEY);
-    if(!raw) return;
-    const o = JSON.parse(raw);
-    state.score = o.score||0;
-  }catch(_){/*ignore*/}
+document.getElementById("resetBtn").onclick = () => {
+  score = 0;
+  scoreEl.textContent = score;
+  statusEl.textContent = "RESET";
+};
+
+document.getElementById("saveBtn").onclick = () => {
+  localStorage.setItem("simpleTapScore", score);
+  statusEl.textContent = "SAVED";
+};
+
+const saved = localStorage.getItem("simpleTapScore");
+if (saved !== null) {
+  score = Number(saved);
+  scoreEl.textContent = score;
+  statusEl.textContent = "LOADED";
 }
-
-function save(msg=false){
-  try{
-    localStorage.setItem(SAVE_KEY, JSON.stringify({score:state.score}));
-    if(msg) setStatus('保存しました');
-  }catch(_){ setStatus('保存失敗'); }
-}
-
-// Events
-if(tapBtn) tapBtn.addEventListener('click', ()=>{ state.score += 1; render(); });
-if(saveBtn) saveBtn.addEventListener('click', ()=> save(true));
-if(resetBtn) resetBtn.addEventListener('click', ()=>{
-  if(!confirm('リセットしますか？')) return;
-  state.score = 0; save(true); render();
-});
-
-// Boot
-load();
-render();
-setStatus('READY');
