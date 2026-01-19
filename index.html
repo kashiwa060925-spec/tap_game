@@ -667,6 +667,82 @@ const Sound={ play(name){ if(!_audioReady||!audioCtx||!AudioStore.enabled) retur
 const Haptics={ enabled:true, crit:[8], death:[40,20,60], vibrate(p){ if(!this.enabled) return; if(!navigator.vibrate) return; try{ navigator.vibrate(p); }catch(e){} } };
 const UIAudio={ syncControls(){ if(!ui.audioEnabled) return; ui.audioEnabled.checked=!!AudioStore.enabled; ui.hapticEnabled.checked=!!Haptics.enabled; ui.seVol.value=Math.round(AudioStore.seVol*100); ui.bgmBoss&&(ui.bgmBoss.checked=!!AudioStore.bgmBoss); } };
 
+<script>
+// --- ここから追記（updateUI の実装） ---
+function updateUI(){
+  // 上部の簡易表示
+  if (ui.c_gold)  ui.c_gold.textContent  = Math.floor(state.gold);
+  if (ui.c_level) ui.c_level.textContent = state.level;
+  if (ui.c_exp)   ui.c_exp.textContent   = `${state.exp}/${state.expToNext}`;
+
+  // 上部の詳細表示
+  if (ui.x_floor) ui.x_floor.textContent = state.floor;
+  if (ui.x_level) ui.x_level.textContent = state.level;
+  if (ui.x_exp)   ui.x_exp.textContent   = `${state.exp}/${state.expToNext}`;
+  if (ui.x_atk)   ui.x_atk.textContent   = playerATK();
+  if (ui.x_gold)  ui.x_gold.textContent  = Math.floor(state.gold);
+  if (ui.x_souls) ui.x_souls.textContent = state.souls;
+  if (ui.x_crit)  ui.x_crit.textContent  = `${Math.floor(playerCRIT())}%`;
+
+  // HPバー
+  const mx = recalcMaxHP();
+  const pct = clamp((state.playerHP / mx) * 100, 0, 100);
+  if (ui.x_hpbar)  ui.x_hpbar.style.width = `${pct}%`;
+  if (ui.x_hptxt)  ui.x_hptxt.textContent = `${Math.floor(state.playerHP)}/${mx}`;
+
+  // 強化メニューの価格・レベル
+  if (ui.upgGold)    ui.upgGold.textContent = Math.floor(state.gold);
+  if (ui.lvAtk)      ui.lvAtk.textContent   = state.upg.atk || 0;
+  if (ui.lvHP)       ui.lvHP.textContent    = state.upg.hp  || 0;
+  if (ui.lvAuto)     ui.lvAuto.textContent  = state.upg.auto|| 0;
+  if (ui.countAtk)   ui.countAtk.textContent= `購入回数：${state.upg.atk||0}`;
+  if (ui.countHP)    ui.countHP.textContent = `購入回数：${state.upg.hp ||0}`;
+  if (ui.countAuto)  ui.countAuto.textContent=`購入回数：${state.upg.auto||0}`;
+  if (ui.costAtk)    ui.costAtk.textContent = prices.atk;
+  if (ui.costHP)     ui.costHP.textContent  = prices.hp;
+  if (ui.costAuto)   ui.costAuto.textContent= prices.auto;
+  if (ui.autoRate)   ui.autoRate.textContent= (state.autoTap||0).toFixed(1);
+
+  // 階層バッジ（地名／テーマ）
+  if (ui.floorBadge){
+    ui.floorBadge.innerHTML = `階層 ${state.floor} <span class="theme-badge" id="themeBadge">${ensureStageNameForBlock(currentBlockIdx(), ensureThemeForBlock(currentBlockIdx()))} / ${themeLabel(ensureThemeForBlock(currentBlockIdx()))}</span>`;
+    // 再取得（innerHTML差し替えで参照が変わるため）
+    ui.themeBadge = document.getElementById('themeBadge');
+  }
+
+  // 統計（ラウンド／通算）
+  if (ui.staRoundMax) ui.staRoundMax.textContent = state.roundMaxFloor || 1;
+  if (ui.staBestMax)  ui.staBestMax.textContent  = state.bestMaxFloor  || 1;
+  if (ui.staAtk)      ui.staAtk.textContent      = playerATK();
+  if (ui.staHP)       ui.staHP.textContent       = recalcMaxHP();
+  if (ui.staDef)      ui.staDef.textContent      = state.baseDEF + (state.eq.armor?.def || 0);
+  if (ui.staCrit)     ui.staCrit.textContent     = `${Math.floor(playerCRIT())}%`;
+  if (ui.staAutoTap)  ui.staAutoTap.textContent  = (state.autoTap||0).toFixed(1);
+  if (ui.staGoldB)    ui.staGoldB.textContent    = `${Math.floor(goldB())}%`;
+  if (ui.staItemDrop) ui.staItemDrop.textContent = `${(getItemDrop()*100).toFixed(1)}%`;
+  if (ui.staAsc)      ui.staAsc.textContent      = state.ascCount || 0;
+
+  // 所持
+  if (ui.bagGold)     ui.bagGold.textContent     = Math.floor(state.gold);
+  if (ui.bagSoul)     ui.bagSoul.textContent     = state.souls;
+  if (ui.bagSoulSpent)ui.bagSoulSpent.textContent= state.soulsSpent;
+  if (ui.bagGem)      ui.bagGem.textContent      = state.magicStones;
+  if (ui.bagPeb)      ui.bagPeb.textContent      = state.pebbles;
+  if (ui.bagEq)       ui.bagEq.textContent       = state.inv.length;
+
+  // 装備関連UI／聖遺物／錬成
+  renderEquipped();
+  renderInventory();
+  refreshDemonList();
+  updateRelicUI();
+  refreshBulkNote();
+
+  // 攻撃ボタンの表示（倒す／戦闘開始）
+  updateAttackBtn();
+}
+// --- 追記ここまで ---
+</script>
+
 // ====== ループ＆初期化 ======
 let last=performance.now(), _loopStarted=false;
 function loop(nowTs){ const dt=Math.min(0.1,(nowTs-last)/1000); last=nowTs; autoTapTick(dt); enemyTick(dt); regenTick(dt); timersTick(dt); updateUI(); requestAnimationFrame(loop); }
