@@ -1,9 +1,0 @@
-
-【変更日】2026-01-19
-【作業名】Simple Tap（超シンプルなタップゲーム）雛形 生成
-【構成】
-- index.html：スコア表示／TAP／保存／リセット
-- assets/css/styles_2026-01-19.css：スタイル一式
-- assets/js/app.js：ロジック（加算・保存・読込）
-【保存】localStorage キー：simple_tap_v1
-【備考】最小構成。今後の拡張（クリティカル、SE、アニメ、オート進行など）前提。
