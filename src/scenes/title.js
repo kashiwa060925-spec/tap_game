@@ -14,7 +14,7 @@ export class TitleScene {
     wrap.querySelector('#start').addEventListener('click', ()=>{ this.state.reset(); this.scenes.goto(this.next()); });
     wrap.querySelector('#continue').addEventListener('click', ()=>{ this.state.load(); this.scenes.goto(this.next()); });
   }
-  next(){
+  async next(){
     const { GameScene } = await import('./game.js');
     return new GameScene({ bus: this.bus, scenes: this.scenes, state: this.state });
   }
